@@ -14,7 +14,7 @@ cd golang-course/task1
 go install ./cmd/repoViewer
 ```
 
-## Buildz
+## Build
 ```bash
 git clone https://github.com/IliaSotnikov2005/golang-course.git
 cd golang-course/task1
