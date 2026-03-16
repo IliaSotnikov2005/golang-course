@@ -4,7 +4,7 @@ import "google/protobuf/timestamp.proto";
 
 package collector;
 
-option go_package = "github.com/yourname/task2/api/proto/gen;collectorpb";
+option go_package = "github.com/IliaSotnikov2005/golang-course/task2/api/proto/gen;collectorpb";
 
 // GetRepositoryRequest contains parameters for requesting repository information.
 message GetRepositoryRequest {
