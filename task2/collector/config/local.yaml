@@ -1,0 +1,8 @@
+env: "local"
+grpc:
+  port: ":50505"
+  timeout: 10s
+http:
+  baseurl: "https://api.github.com/repos"
+  timeout: 10s
+  user-agent: "Collector-Service/1.0"

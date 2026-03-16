@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -12,16 +12,18 @@ import (
 )
 
 type Client struct {
-	httpClient *http.Client
+	httpClient http.Client
 	baseURL    string
-	logger     log.Logger
+	userAgent  string
+	log        *slog.Logger
 }
 
-func NewClient() *Client {
+func NewClient(httpClient http.Client, baseURL string, userAgent string, log *slog.Logger) *Client {
 	return &Client{
-		httpClient: &http.Client{Timeout: 10 * time.Second},
-		baseURL:    "https://api.github.com/repos",
-		logger:     *log.Default(),
+		httpClient: httpClient,
+		baseURL:    baseURL,
+		userAgent:  userAgent,
+		log:        log,
 	}
 }
 
@@ -35,6 +37,12 @@ type gitHubResponse struct {
 }
 
 func (c *Client) GetRepository(ctx context.Context, owner, repo string) (*domain.Repository, error) {
+	const op = "github.Client.GetRepository"
+
+	log := c.log.With(
+		slog.String("op", op),
+	)
+
 	apiURL := fmt.Sprintf("%s/%s/%s", c.baseURL, owner, repo)
 
 	request, err := http.NewRequest("GET", apiURL, nil)
@@ -52,12 +60,23 @@ func (c *Client) GetRepository(ctx context.Context, owner, repo string) (*domain
 
 	defer func() {
 		if err := response.Body.Close(); err != nil {
-			c.logger.Printf("Warning: failed to close response body: %v\n", err)
+			log.Warn("failed to close response body: %v\n", slog.String("error", err.Error()))
 		}
 	}()
 
-	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("bad status: %s", response.Status)
+	switch response.StatusCode {
+	case http.StatusOK:
+
+	case http.StatusMovedPermanently:
+		return nil, fmt.Errorf("%w: %s", domain.ErrMovedPermanently, response.Status)
+
+	case http.StatusForbidden:
+		return nil, fmt.Errorf("%w: %s", domain.ErrForbidden, response.Status)
+
+	case http.StatusNotFound:
+		return nil, fmt.Errorf("%w: %s", domain.ErrNotFound, response.Status)
+	default:
+		return nil, fmt.Errorf("unexpected status: %s", response.Status)
 	}
 
 	var ghResponse gitHubResponse

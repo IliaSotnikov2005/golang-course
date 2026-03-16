@@ -1,31 +1,29 @@
-package cmd
+package main
 
 import (
-	"log"
-	"net"
+	"log/slog"
+	"os"
+	"os/signal"
+	"syscall"
 
-	collectorpb "github.com/IliaSotnikov2005/golang-course/task2/api/proto/gen"
-	"github.com/IliaSotnikov2005/golang-course/task2/collector/internal/adapter/github"
-	grpcadapter "github.com/IliaSotnikov2005/golang-course/task2/collector/internal/adapter/grpc"
-	"github.com/IliaSotnikov2005/golang-course/task2/collector/internal/usecase"
-	"google.golang.org/grpc"
+	"github.com/IliaSotnikov2005/golang-course/task2/collector/internal/app"
+	"github.com/IliaSotnikov2005/golang-course/task2/collector/internal/config"
 )
 
 func main() {
-	githubClient := github.NewClient()
-	getRepoUseCase := usecase.NewGetRepositoryUseCase(githubClient)
-	grpcHandler := grpcadapter.NewHandler(getRepoUseCase)
+	cfg := config.MustLoad()
 
-	lis, err := net.Listen("tcp", ":50505")
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
+	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 
-	s := grpc.NewServer()
-	collectorpb.RegisterCollectorServiceServer(s, grpcHandler)
+	application := app.New(log, &cfg)
 
-	log.Println("Collector service starting on :50505")
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
-	}
+	go application.GRPCServer.MustRun()
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
+
+	<-stop
+
+	application.GRPCServer.Stop()
+	log.Info("application stopped")
 }
