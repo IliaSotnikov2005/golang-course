@@ -1,0 +1,9 @@
+env: "local"
+
+http:
+  port: ":8080"
+  timeout: 30s
+
+collector:
+  address: "localhost:50505"
+  timeout: 5s

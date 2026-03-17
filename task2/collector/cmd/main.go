@@ -17,7 +17,9 @@ func main() {
 
 	application := app.New(log, &cfg)
 
-	go application.GRPCServer.MustRun()
+	go func() {
+		application.GRPCServer.MustRun()
+	}()
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
