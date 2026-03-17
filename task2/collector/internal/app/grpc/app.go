@@ -6,9 +6,9 @@ import (
 	"net"
 	"net/http"
 
-	collectorpb "github.com/IliaSotnikov2005/golang-course/task2/api/proto/gen"
 	"github.com/IliaSotnikov2005/golang-course/task2/collector/internal/adapter/github"
 	grpcadapter "github.com/IliaSotnikov2005/golang-course/task2/collector/internal/adapter/grpc"
+	collectorpb "github.com/IliaSotnikov2005/golang-course/task2/collector/internal/api/proto/gen"
 	"github.com/IliaSotnikov2005/golang-course/task2/collector/internal/config"
 	"github.com/IliaSotnikov2005/golang-course/task2/collector/internal/usecase"
 	"google.golang.org/grpc"

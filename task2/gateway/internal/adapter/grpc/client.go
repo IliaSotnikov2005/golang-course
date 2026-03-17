@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	collectorpb "github.com/IliaSotnikov2005/golang-course/task2/api/proto/gen"
+	collectorpb "github.com/IliaSotnikov2005/golang-course/task2/gateway/internal/api/proto/gen"
 	"github.com/IliaSotnikov2005/golang-course/task2/gateway/internal/domain"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"

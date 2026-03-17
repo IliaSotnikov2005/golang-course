@@ -1,6 +1,6 @@
 env: "local"
 grpc:
-  port: ":50505"
+  port: ":50051"
   timeout: 10s
 http:
   baseurl: "https://api.github.com/repos"

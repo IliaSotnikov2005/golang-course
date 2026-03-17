@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	collectorpb "github.com/IliaSotnikov2005/golang-course/task2/api/proto/gen"
+	collectorpb "github.com/IliaSotnikov2005/golang-course/task2/collector/internal/api/proto/gen"
 	"github.com/IliaSotnikov2005/golang-course/task2/collector/internal/domain"
 	"github.com/IliaSotnikov2005/golang-course/task2/collector/internal/usecase"
 	"google.golang.org/grpc/codes"
