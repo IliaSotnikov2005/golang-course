@@ -1,0 +1,144 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "contact": {}
+    },
+    "paths": {
+        "/api/v1/health": {
+            "get": {
+                "description": "Returns service health status",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "system"
+                ],
+                "summary": "Health check",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/rest.HealthResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/repos/{owner}/{repo}": {
+            "get": {
+                "description": "Returns information about a GitHub repository",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "repositories"
+                ],
+                "summary": "Get repository information",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Repository owner (user or organization)",
+                        "name": "owner",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Repository name",
+                        "name": "repo",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/rest.RepositoryResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/rest.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/rest.ErrorResponse"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/rest.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/rest.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "rest.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "Not Found"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Repository not found"
+                }
+            }
+        },
+        "rest.HealthResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "example": "ok"
+                }
+            }
+        },
+        "rest.RepositoryResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2014-08-19T22:33:41Z"
+                },
+                "description": {
+                    "type": "string",
+                    "example": "The Go programming language"
+                },
+                "forks_count": {
+                    "type": "integer",
+                    "example": 12345
+                },
+                "html_url": {
+                    "type": "string",
+                    "example": "https://github.com/golang/go"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "go"
+                },
+                "stargazers_count": {
+                    "type": "integer",
+                    "example": 123456
+                }
+            }
+        }
+    }
+}
