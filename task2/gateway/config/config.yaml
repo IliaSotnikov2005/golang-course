@@ -1,9 +1,8 @@
 env: "local"
-
+log-level: "debug"
 http:
   port: ":8080"
   timeout: 30s
-
-collector:
-  address: "localhost:50505"
+grpc:
+  address: "github-collector:50051"
   timeout: 5s

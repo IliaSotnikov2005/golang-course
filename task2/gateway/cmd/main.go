@@ -10,18 +10,44 @@ import (
 	"github.com/IliaSotnikov2005/golang-course/task2/gateway/internal/config"
 )
 
-func main() {
-	cfg := config.MustLoad()
-
-	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelDebug,
-	}))
-
-	application, err := app.New(log, cfg)
+func Must[T any](obj T, err error) T {
 	if err != nil {
-		log.Error("failed to create app", slog.String("error", err.Error()))
-		os.Exit(1)
+		panic(err)
 	}
+
+	return obj
+}
+
+func setupLogger(level slog.Level) *slog.Logger {
+	opts := &slog.HandlerOptions{
+		Level: level,
+	}
+
+	handler := slog.NewTextHandler(os.Stdout, opts)
+	return slog.New(handler)
+}
+
+func getLogLevel(cfg *config.Config) slog.Level {
+	switch cfg.LogLevel {
+	case "debug":
+		return slog.LevelDebug
+	case "info":
+		return slog.LevelInfo
+	case "warn":
+		return slog.LevelWarn
+	case "error":
+		return slog.LevelError
+	default:
+		return slog.LevelInfo
+	}
+}
+
+func main() {
+	cfg := Must(config.Load())
+
+	log := setupLogger(getLogLevel(cfg))
+
+	application := Must(app.New(log, cfg))
 
 	go func() {
 		application.HTTPServer.MustRun()
@@ -35,5 +61,5 @@ func main() {
 	<-stop
 
 	application.Stop()
-	log.Info("application stopped")
+	log.Info("gateway stopped")
 }

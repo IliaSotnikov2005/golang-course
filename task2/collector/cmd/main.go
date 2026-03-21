@@ -6,19 +6,51 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/IliaSotnikov2005/golang-course/task2/collector/internal/app"
+	grpcapp "github.com/IliaSotnikov2005/golang-course/task2/collector/internal/app/grpc"
 	"github.com/IliaSotnikov2005/golang-course/task2/collector/internal/config"
 )
 
+func Must[T any](obj T, err error) T {
+	if err != nil {
+		panic(err)
+	}
+
+	return obj
+}
+
+func setupLogger(level slog.Level) *slog.Logger {
+	opts := &slog.HandlerOptions{
+		Level: level,
+	}
+
+	handler := slog.NewTextHandler(os.Stdout, opts)
+	return slog.New(handler)
+}
+
+func getLogLevel(cfg *config.Config) slog.Level {
+	switch cfg.LogLevel {
+	case "debug":
+		return slog.LevelDebug
+	case "info":
+		return slog.LevelInfo
+	case "warn":
+		return slog.LevelWarn
+	case "error":
+		return slog.LevelError
+	default:
+		return slog.LevelInfo
+	}
+}
+
 func main() {
-	cfg := config.MustLoad()
+	cfg := Must(config.Load())
 
-	log := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	log := setupLogger(getLogLevel(cfg))
 
-	application := app.New(log, &cfg)
+	gRPCApp := grpcapp.New(log, cfg.GRPC, cfg.HTTP)
 
 	go func() {
-		application.GRPCServer.MustRun()
+		gRPCApp.MustRun()
 	}()
 
 	stop := make(chan os.Signal, 1)
@@ -26,6 +58,6 @@ func main() {
 
 	<-stop
 
-	application.GRPCServer.Stop()
+	gRPCApp.Stop()
 	log.Info("application stopped")
 }

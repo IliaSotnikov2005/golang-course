@@ -24,6 +24,14 @@ func NewHandler(getRepoUseCase *usecase.GetRepositoryUseCase) *Handler {
 }
 
 func (h *Handler) GetRepository(ctx context.Context, req *collectorpb.GetRepositoryRequest) (*collectorpb.GetRepositoryResponse, error) {
+	if req.Owner == "" {
+		return nil, status.Error(codes.InvalidArgument, "owner cannot be empty")
+	}
+
+	if req.Repo == "" {
+		return nil, status.Error(codes.InvalidArgument, "repo cannot be empty")
+	}
+
 	repo, err := h.getRepoUseCase.Execute(ctx, req.Owner, req.Repo)
 	if err != nil {
 		return nil, mapErrorToGRPC(err)
@@ -40,16 +48,36 @@ func (h *Handler) GetRepository(ctx context.Context, req *collectorpb.GetReposit
 }
 
 func mapErrorToGRPC(err error) error {
-	switch {
-	case errors.Is(err, domain.ErrNotFound):
-		return status.Errorf(codes.NotFound, "%s", err.Error())
-
-	case errors.Is(err, domain.ErrMovedPermanently):
-		return status.Errorf(codes.NotFound, "%s", err.Error())
-
-	case errors.Is(err, domain.ErrForbidden):
-		return status.Errorf(codes.PermissionDenied, "%s", err.Error())
+	if err == nil {
+		return nil
 	}
 
-	return nil
+	switch {
+	case errors.Is(err, domain.ErrNotFound):
+		return status.Error(codes.NotFound, err.Error())
+
+	case errors.Is(err, domain.ErrMovedPermanently):
+		return status.Error(codes.NotFound, err.Error())
+
+	case errors.Is(err, domain.ErrForbidden):
+		return status.Error(codes.PermissionDenied, err.Error())
+
+	case errors.Is(err, domain.ErrUnauthorized):
+		return status.Error(codes.Unauthenticated, err.Error())
+
+	case errors.Is(err, domain.ErrRateLimit):
+		return status.Error(codes.ResourceExhausted, err.Error())
+
+	case errors.Is(err, domain.ErrInvalidInput):
+		return status.Error(codes.InvalidArgument, err.Error())
+
+	case errors.Is(err, domain.ErrTimeout):
+		return status.Error(codes.DeadlineExceeded, err.Error())
+
+	case errors.Is(err, domain.ErrInternal):
+		return status.Error(codes.Internal, err.Error())
+
+	default:
+		return status.Error(codes.Internal, "internal server error")
+	}
 }

@@ -7,9 +7,11 @@ services:
       dockerfile: Dockerfile
     container_name: github-collector
     ports:
-      - "50505:50505"
+      - "50051:50051"
+    volumes:
+      - ./collector/config:/app/config
     environment:
-      - CONFIG_PATH=/app/configs/collector/config.yaml
+      - CONFIG_PATH=/app/config/config.yaml
     networks:
       - github-network
     restart: unless-stopped
@@ -27,8 +29,10 @@ services:
     container_name: github-gateway
     ports:
       - "8080:8080"
+    volumes:
+      - ./gateway/config:/app/config
     environment:
-      - CONFIG_PATH=/app/configs/gateway/config.yaml
+      - CONFIG_PATH=/app/config/config.yaml
     networks:
       - github-network
     restart: unless-stopped

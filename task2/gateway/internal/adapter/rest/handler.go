@@ -100,33 +100,52 @@ func (h *Handler) healthCheck(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) handleError(w http.ResponseWriter, err error) {
 	var statusCode int
 	var message string
+	var errorCode string
 
 	switch {
 	case errors.Is(err, domain.ErrNotFound):
 		statusCode = http.StatusNotFound
+		errorCode = "NOT_FOUND"
 		message = "Repository not found"
+
+	case errors.Is(err, domain.ErrMovedPermanently):
+		statusCode = http.StatusNotFound
+		errorCode = "NOT_FOUND"
+		message = "Repository not found or moved"
+
 	case errors.Is(err, domain.ErrInvalidInput):
 		statusCode = http.StatusBadRequest
+		errorCode = "INVALID_INPUT"
 		message = err.Error()
+
 	case errors.Is(err, domain.ErrForbidden):
 		statusCode = http.StatusForbidden
+		errorCode = "FORBIDDEN"
 		message = "Access forbidden"
+
 	case errors.Is(err, domain.ErrUnauthorized):
 		statusCode = http.StatusUnauthorized
-		message = "Unauthorized"
+		errorCode = "UNAUTHORIZED"
+		message = "Authentication required"
+
 	case errors.Is(err, domain.ErrRateLimit):
 		statusCode = http.StatusTooManyRequests
-		message = "Rate limit exceeded"
+		errorCode = "RATE_LIMIT_EXCEEDED"
+		message = "Rate limit exceeded, please try again later"
+
 	case errors.Is(err, domain.ErrTimeout):
 		statusCode = http.StatusGatewayTimeout
+		errorCode = "TIMEOUT"
 		message = "Request timeout"
+
 	default:
 		statusCode = http.StatusInternalServerError
+		errorCode = "INTERNAL_ERROR"
 		message = "Internal server error"
 	}
 
 	h.respondJSON(w, statusCode, ErrorResponse{
-		Error:   http.StatusText(statusCode),
+		Error:   errorCode,
 		Message: message,
 	})
 }
@@ -134,7 +153,10 @@ func (h *Handler) handleError(w http.ResponseWriter, err error) {
 func (h *Handler) respondJSON(w http.ResponseWriter, status int, data any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(data)
+
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+	}
 }
 
 func (h *Handler) serveSwagger(w http.ResponseWriter, r *http.Request) {

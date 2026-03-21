@@ -39,9 +39,7 @@ type gitHubResponse struct {
 func (c *Client) GetRepository(ctx context.Context, owner, repo string) (*domain.Repository, error) {
 	const op = "github.Client.GetRepository"
 
-	log := c.log.With(
-		slog.String("op", op),
-	)
+	log := c.log.With(slog.String("op", op))
 
 	apiURL := fmt.Sprintf("%s/%s/%s", c.baseURL, owner, repo)
 
@@ -51,7 +49,7 @@ func (c *Client) GetRepository(ctx context.Context, owner, repo string) (*domain
 	}
 
 	request.Header.Set("Accept", "application/vnd.github.v3+json")
-	request.Header.Set("User-Agent", "Go-Client")
+	request.Header.Set("User-Agent", c.userAgent)
 
 	response, err := c.httpClient.Do(request)
 	if err != nil {
@@ -68,15 +66,19 @@ func (c *Client) GetRepository(ctx context.Context, owner, repo string) (*domain
 	case http.StatusOK:
 
 	case http.StatusMovedPermanently:
-		return nil, fmt.Errorf("%w: %s", domain.ErrMovedPermanently, response.Status)
+		location := response.Header.Get("Location")
+		return nil, fmt.Errorf("%w: %s", domain.ErrMovedPermanently, location)
+
+	case http.StatusUnauthorized:
+		return nil, fmt.Errorf("%w: invalid or missing token", domain.ErrUnauthorized)
 
 	case http.StatusForbidden:
-		return nil, fmt.Errorf("%w: %s", domain.ErrForbidden, response.Status)
+		return nil, fmt.Errorf("%w: access denied", domain.ErrForbidden)
 
 	case http.StatusNotFound:
-		return nil, fmt.Errorf("%w: %s", domain.ErrNotFound, response.Status)
+		return nil, fmt.Errorf("%w: repository %s/%s not found", domain.ErrNotFound, owner, repo)
 	default:
-		return nil, fmt.Errorf("unexpected status: %s", response.Status)
+		return nil, fmt.Errorf("%w: unexpected status code %d", domain.ErrInternal, response.StatusCode)
 	}
 
 	var ghResponse gitHubResponse

@@ -3,6 +3,7 @@ package grpcclient
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	collectorpb "github.com/IliaSotnikov2005/golang-course/task2/gateway/internal/api/proto/gen"
@@ -17,13 +18,16 @@ type Client struct {
 	conn    *grpc.ClientConn
 	client  collectorpb.CollectorServiceClient
 	timeout time.Duration
+	log     *slog.Logger
 }
 
-func NewClient(address string, timeout time.Duration) (*Client, error) {
+func NewClient(address string, timeout time.Duration, log *slog.Logger) (*Client, error) {
+	log.Info("Creating gRPC client", slog.String("address", address))
 	conn, err := grpc.NewClient(
 		address,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to collector: %w", err)
 	}
@@ -34,11 +38,19 @@ func NewClient(address string, timeout time.Duration) (*Client, error) {
 		conn:    conn,
 		client:  client,
 		timeout: timeout,
+		log:     log,
 	}, nil
 }
 
 func (c *Client) GetRepository(ctx context.Context, owner, repo string) (*domain.Repository, error) {
-	if _, ok := ctx.Deadline(); !ok {
+	log := c.log.With(
+		slog.String("owner", owner),
+		slog.String("repo", repo),
+	)
+
+	log.Debug("Calling collector.GetRepository")
+
+	if _, ok := ctx.Deadline(); !ok && c.timeout > 0 {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithTimeout(ctx, c.timeout)
 		defer cancel()
@@ -48,9 +60,13 @@ func (c *Client) GetRepository(ctx context.Context, owner, repo string) (*domain
 		Owner: owner,
 		Repo:  repo,
 	})
+
 	if err != nil {
+		log.Error("gRPC call failed", slog.String("error", err.Error()))
 		return nil, mapGRPCErrorToDomain(err)
 	}
+
+	log.Debug("gRPC call successful")
 
 	return &domain.Repository{
 		Name:        resp.Name,
@@ -78,20 +94,30 @@ func mapGRPCErrorToDomain(err error) error {
 
 	switch st.Code() {
 	case codes.NotFound:
-		return fmt.Errorf("%w: %v", domain.ErrNotFound, st.Message())
+		return fmt.Errorf("%w: %s", domain.ErrNotFound, st.Message())
+
 	case codes.PermissionDenied:
-		return fmt.Errorf("%w: %v", domain.ErrForbidden, st.Message())
+		return fmt.Errorf("%w: %s", domain.ErrForbidden, st.Message())
+
 	case codes.Unauthenticated:
-		return fmt.Errorf("%w: %v", domain.ErrUnauthorized, st.Message())
+		return fmt.Errorf("%w: %s", domain.ErrUnauthorized, st.Message())
+
 	case codes.ResourceExhausted:
-		return fmt.Errorf("%w: %v", domain.ErrRateLimit, st.Message())
+		return fmt.Errorf("%w: %s", domain.ErrRateLimit, st.Message())
+
 	case codes.InvalidArgument:
-		return fmt.Errorf("%w: %v", domain.ErrInvalidInput, st.Message())
+		return fmt.Errorf("%w: %s", domain.ErrInvalidInput, st.Message())
+
 	case codes.DeadlineExceeded:
-		return fmt.Errorf("%w: %v", domain.ErrTimeout, st.Message())
+		return fmt.Errorf("%w: request to collector service timed out", domain.ErrTimeout)
+
 	case codes.Unavailable:
-		return fmt.Errorf("collector service unavailable: %w", err)
+		return fmt.Errorf("%w: collector service is unavailable", domain.ErrInternal)
+
+	case codes.Internal:
+		return fmt.Errorf("%w: collector service internal error: %s", domain.ErrInternal, st.Message())
+
 	default:
-		return fmt.Errorf("%w: %v", domain.ErrInternal, st.Message())
+		return fmt.Errorf("%w: unexpected error from collector: %s", domain.ErrInternal, st.Message())
 	}
 }

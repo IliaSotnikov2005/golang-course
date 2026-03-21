@@ -2,6 +2,7 @@ package config
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"time"
 
@@ -9,9 +10,10 @@ import (
 )
 
 type Config struct {
-	Env       string          `yaml:"env" env-required:"true"`
-	HTTP      HTTPConfig      `yaml:"http"`
-	Collector CollectorConfig `yaml:"collector"`
+	Env      string          `yaml:"env" env-required:"true"`
+	LogLevel string          `yaml:"log-level" env-default:"info"`
+	HTTP     HTTPConfig      `yaml:"http"`
+	GRPC     CollectorConfig `yaml:"grpc"`
 }
 
 type HTTPConfig struct {
@@ -24,23 +26,23 @@ type CollectorConfig struct {
 	Timeout time.Duration `yaml:"timeout" env-default:"5s"`
 }
 
-func MustLoad() *Config {
+func Load() (*Config, error) {
 	path := fetchConfigPath()
 	if path == "" {
-		panic("config path is empty")
+		return nil, fmt.Errorf("config path is empty")
 	}
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		panic("config file does not exist: " + path)
+		return nil, fmt.Errorf("config file does not exist: %s", path)
 	}
 
 	var cfg Config
 
 	if err := cleanenv.ReadConfig(path, &cfg); err != nil {
-		panic("failed to read config: " + err.Error())
+		return nil, fmt.Errorf("failed to read config: %w", err)
 	}
 
-	return &cfg
+	return &cfg, nil
 }
 
 func fetchConfigPath() string {

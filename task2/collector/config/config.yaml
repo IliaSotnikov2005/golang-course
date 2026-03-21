@@ -1,4 +1,5 @@
 env: "local"
+log-level: "debug"
 grpc:
   port: ":50051"
   timeout: 10s

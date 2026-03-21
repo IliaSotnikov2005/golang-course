@@ -16,7 +16,7 @@ type App struct {
 }
 
 func New(log *slog.Logger, cfg *config.Config) (*App, error) {
-	grpcClient, err := grpcclient.NewClient(cfg.Collector.Address, cfg.Collector.Timeout)
+	grpcClient, err := grpcclient.NewClient(cfg.GRPC.Address, cfg.GRPC.Timeout, log)
 	if err != nil {
 		return nil, err
 	}
@@ -35,6 +35,7 @@ func (a *App) Stop() {
 	if a.GRPCClient != nil {
 		a.GRPCClient.Close()
 	}
+
 	if a.HTTPServer != nil {
 		a.HTTPServer.Stop()
 	}

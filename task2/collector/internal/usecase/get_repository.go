@@ -19,10 +19,10 @@ func NewGetRepositoryUseCase(gitHubClient domain.GitHubClient) *GetRepositoryUse
 
 func (uc *GetRepositoryUseCase) Execute(ctx context.Context, owner, repo string) (*domain.Repository, error) {
 	if owner == "" {
-		return nil, fmt.Errorf("owner cannot be empty")
+		return nil, fmt.Errorf("%w: owner cannot be empty", domain.ErrInvalidInput)
 	}
 	if repo == "" {
-		return nil, fmt.Errorf("repo cannot be empty")
+		return nil, fmt.Errorf("%w: repo cannot be empty", domain.ErrInvalidInput)
 	}
 
 	repository, err := uc.githubClient.GetRepository(ctx, owner, repo)
