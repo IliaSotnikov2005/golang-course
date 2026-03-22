@@ -59,10 +59,12 @@ func (h *Handler) Router() chi.Router {
 // @Param        owner   path      string  true  "Repository owner (user or organization)"
 // @Param        repo    path      string  true  "Repository name"
 // @Success      200     {object}  RepositoryResponse
-// @Failure      400     {object}  ErrorResponse
-// @Failure      404     {object}  ErrorResponse
-// @Failure      429     {object}  ErrorResponse
-// @Failure      500     {object}  ErrorResponse
+// @Failure      400     {object}  ErrorResponse  "Invalid input"
+// @Failure      403     {object}  ErrorResponse  "Access forbidden"
+// @Failure      404     {object}  ErrorResponse  "Repository not found"
+// @Failure      429     {object}  ErrorResponse  "Rate limit exceeded"
+// @Failure      500     {object}  ErrorResponse  "Internal server error"
+// @Failure      504     {object}  ErrorResponse  "Request timeout"
 // @Router       /api/v1/repos/{owner}/{repo} [get]
 func (h *Handler) getRepository(w http.ResponseWriter, r *http.Request) {
 	owner := chi.URLParam(r, "owner")
