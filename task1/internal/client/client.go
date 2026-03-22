@@ -19,14 +19,16 @@ type Repository struct {
 }
 
 func (r *Repository) String() string {
-	return fmt.Sprintf("=== Repository info ===\n"+
-		"Name: %s\n"+
-		"Description: %s\n"+
-		"Stars: %d\n"+
-		"Forks: %d\n"+
-		"Created at: %s\n"+
-		"URL: %s\n"+
-		"========================",
+	return fmt.Sprintf(
+		`=== Repository info ===
+Name: %s
+Description: %s
+Stars: %d
+Forks: %d
+Created at: %s
+URL: %s
+========================
+`,
 		r.Name, r.Description, r.Stargazers, r.Forks,
 		r.CreatedAt.Format("02-01-2006 15:04:05"), r.HTMLURL)
 }

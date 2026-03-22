@@ -45,5 +45,5 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Print(repo.String())
+	fmt.Print(repo)
 }
