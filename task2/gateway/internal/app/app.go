@@ -13,6 +13,7 @@ import (
 type App struct {
 	HTTPServer *httpapp.App
 	GRPCClient *grpcclient.Client
+	log        *slog.Logger
 }
 
 func New(log *slog.Logger, cfg *config.Config) (*App, error) {
@@ -28,12 +29,15 @@ func New(log *slog.Logger, cfg *config.Config) (*App, error) {
 	return &App{
 		HTTPServer: httpServer,
 		GRPCClient: grpcClient,
+		log:        log,
 	}, nil
 }
 
 func (a *App) Stop() {
 	if a.GRPCClient != nil {
-		a.GRPCClient.Close()
+		if err := a.GRPCClient.Close(); err != nil {
+			a.log.Error("failed to close gRPC client: %v", slog.String("error", err.Error()))
+		}
 	}
 
 	if a.HTTPServer != nil {
