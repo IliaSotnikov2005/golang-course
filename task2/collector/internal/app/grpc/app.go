@@ -51,37 +51,40 @@ func New(
 }
 
 func (a *App) MustRun() {
-	if err := a.Run(); err != nil {
-		panic(err)
-	}
+	go func() {
+		if err := a.Run(); err != nil {
+			a.log.Error("failed to run grpc server", slog.Any("err", err))
+			panic(err)
+		}
+	}()
 }
 
 func (a *App) Run() error {
-	const op = "grpcapp.Run"
+	const operation = "grpcapp.Run"
 
 	log := a.log.With(
-		slog.String("op", op),
+		slog.String("operation", operation),
 		slog.String("port", a.port),
 	)
 
 	lis, err := net.Listen("tcp", a.port)
 	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
+		return fmt.Errorf("%s: %w", operation, err)
 	}
 
 	log.Info("grpc server is running", slog.String("addr", lis.Addr().String()))
 
 	if err := a.gRPCServer.Serve(lis); err != nil {
-		return fmt.Errorf("%s: %w", op, err)
+		return fmt.Errorf("%s: %w", operation, err)
 	}
 
 	return nil
 }
 
 func (a *App) Stop() {
-	const op = "grpcapp.Stop"
+	const operation = "grpcapp.Stop"
 
-	a.log.With(slog.String("op", op)).Info("stopping gRPC server", slog.String("port", a.port))
+	a.log.With(slog.String("operation", operation)).Info("stopping gRPC server", slog.String("port", a.port))
 
 	a.gRPCServer.GracefulStop()
 }

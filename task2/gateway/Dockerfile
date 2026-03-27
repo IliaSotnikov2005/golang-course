@@ -9,7 +9,7 @@ RUN go mod download
 
 COPY . .
 
-RUN swag init -g internal/adapter/rest/handler.go -o ./docs
+RUN swag init -g cmd/main.go --parseInternal --parseDependency -o ./docs
 
 RUN go build -o gateway ./cmd/main.go
 

@@ -8,31 +8,23 @@ option go_package = "github.com/IliaSotnikov2005/golang-course/task2/api/proto/g
 
 // GetRepositoryRequest contains parameters for requesting repository information.
 message GetRepositoryRequest {
-    // owner - repository owner name.
     string owner = 1;
 
-    // repo - repository name.
     string repo = 2;
 }
 
 // RepositoryInfo represents GitHub repository information.
 message GetRepositoryResponse {
-    // name - repository name.
     string name = 1;
 
-    // description - repository description.
     string description = 2;
     
-    // stargazers - number of stars the repository has.
     int32 stargazers = 3;
 	
-    // forks - number of repository forks.
     int32 forks = 4;
 	
-    // created_at - repository creation timestamp.
     google.protobuf.Timestamp created_at = 5;
 	
-    // html_url - repository URL on GitHub.
     string html_url = 6;
 }
 
@@ -41,26 +33,13 @@ service CollectorService {
     
     // GetRepository fetches information about a repository by owner and name.
     //
-    // Example request:
-    //   {
-    //     "owner": "golang",
-    //     "repo": "go"
-    //   }
-    //
-    // Example success response:
-    //   {
-    //     "name": "go",
-    //     "description": "The Go programming language",
-    //     "stargazers_count": 123456,
-    //     "forks_count": 12345,
-    //     "created_at": "2014-08-19T22:33:41Z",
-    //     "html_url": "https://github.com/golang/go"
-    //   }
-    //
-    // Errors:
-    //   - NotFound: repository does not exist
-    //   - InvalidArgument: invalid request parameters
-    //   - Internal: internal server error
-    //   - Unavailable: GitHub API is temporarily unavailable
+    // Potential Errors:
+    //   - NOT_FOUND: Repository does not exist or has been moved.
+    //   - INVALID_ARGUMENT: Owner or Repo name is missing or malformed.
+    //   - PERMISSION_DENIED: Access to the repository is restricted (e.g., private repo).
+    //   - UNAUTHENTICATED: GitHub API authentication failed.
+    //   - RESOURCE_EXHAUSTED: GitHub API rate limit exceeded.
+    //   - DEADLINE_EXCEEDED: The request took too long to process.
+    //   - INTERNAL: An unexpected server-side error occurred.
     rpc GetRepository(GetRepositoryRequest) returns (GetRepositoryResponse);
 }

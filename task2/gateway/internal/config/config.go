@@ -17,13 +17,15 @@ type Config struct {
 }
 
 type HTTPConfig struct {
-	Port    string        `yaml:"port" env-default:":8080"`
-	Timeout time.Duration `yaml:"timeout" env-default:"30s"`
+	Port           string `yaml:"port" env-default:":8080"`
+	TimeoutSeconds int    `yaml:"timeout_seconds" env-default:"30"`
+	Timeout        time.Duration
 }
 
 type CollectorConfig struct {
-	Address string        `yaml:"address" env-required:"true"`
-	Timeout time.Duration `yaml:"timeout" env-default:"5s"`
+	Address        string `yaml:"address" env-required:"true"`
+	TimeoutSeconds int    `yaml:"timeout_seconds" env-default:"5"`
+	Timeout        time.Duration
 }
 
 func Load() (*Config, error) {
@@ -41,6 +43,9 @@ func Load() (*Config, error) {
 	if err := cleanenv.ReadConfig(path, &cfg); err != nil {
 		return nil, fmt.Errorf("failed to read config: %w", err)
 	}
+
+	cfg.GRPC.Timeout = time.Duration(cfg.GRPC.TimeoutSeconds) * time.Second
+	cfg.HTTP.Timeout = time.Duration(cfg.HTTP.TimeoutSeconds) * time.Second
 
 	return &cfg, nil
 }

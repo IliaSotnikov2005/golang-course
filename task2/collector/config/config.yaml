@@ -2,8 +2,8 @@ env: "local"
 log-level: "debug"
 grpc:
   port: ":50051"
-  timeout: 10s
+  timeout_seconds: 10
 http:
   baseurl: "https://api.github.com/repos"
-  timeout: 10s
+  timeout_seconds: 10
   user-agent: "Collector-Service/1.0"

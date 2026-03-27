@@ -17,14 +17,16 @@ type Config struct {
 }
 
 type GRPCConfig struct {
-	Port    string        `yaml:"port"`
-	Timeout time.Duration `yaml:"timeout"`
+	Port           string `yaml:"port"`
+	TimeoutSeconds int    `yaml:"timeout_seconds"`
+	Timeout        time.Duration
 }
 
 type HTTPConfig struct {
-	BaseURL   string        `yaml:"baseurl"`
-	Timeout   time.Duration `yaml:"timeout"`
-	UserAgent string        `yaml:"user_agent" env-default:"Collector-Service/1.0"`
+	BaseURL        string `yaml:"baseurl"`
+	TimeoutSeconds int    `yaml:"timeout_seconds"`
+	Timeout        time.Duration
+	UserAgent      string `yaml:"user_agent" env-default:"Collector-Service/1.0"`
 }
 
 func Load() (*Config, error) {
@@ -42,6 +44,9 @@ func Load() (*Config, error) {
 	if err := cleanenv.ReadConfig(path, &cfg); err != nil {
 		return nil, fmt.Errorf("failed to read config: %w", err)
 	}
+
+	cfg.GRPC.Timeout = time.Duration(cfg.GRPC.TimeoutSeconds) * time.Second
+	cfg.HTTP.Timeout = time.Duration(cfg.HTTP.TimeoutSeconds) * time.Second
 
 	return &cfg, nil
 }

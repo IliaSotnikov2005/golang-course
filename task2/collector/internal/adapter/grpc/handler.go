@@ -24,12 +24,8 @@ func NewHandler(getRepoUseCase *usecase.GetRepositoryUseCase) *Handler {
 }
 
 func (h *Handler) GetRepository(ctx context.Context, req *collectorpb.GetRepositoryRequest) (*collectorpb.GetRepositoryResponse, error) {
-	if req.Owner == "" {
-		return nil, status.Error(codes.InvalidArgument, "owner cannot be empty")
-	}
-
-	if req.Repo == "" {
-		return nil, status.Error(codes.InvalidArgument, "repo cannot be empty")
+	if req.GetOwner() == "" || req.GetRepo() == "" {
+		return nil, status.Error(codes.InvalidArgument, "owner and repo are required")
 	}
 
 	repo, err := h.getRepoUseCase.Execute(ctx, req.Owner, req.Repo)

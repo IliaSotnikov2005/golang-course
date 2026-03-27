@@ -37,13 +37,13 @@ type gitHubResponse struct {
 }
 
 func (c *Client) GetRepository(ctx context.Context, owner, repo string) (*domain.Repository, error) {
-	const op = "github.Client.GetRepository"
+	const operation = "github.Client.GetRepository"
 
-	log := c.log.With(slog.String("op", op))
+	log := c.log.With(slog.String("operation", operation))
 
 	apiURL := fmt.Sprintf("%s/%s/%s", c.baseURL, owner, repo)
 
-	request, err := http.NewRequest("GET", apiURL, nil)
+	request, err := http.NewRequest(http.MethodGet, apiURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("request creation error: %w", err)
 	}

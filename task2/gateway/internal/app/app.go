@@ -4,7 +4,7 @@ import (
 	"log/slog"
 
 	grpcclient "github.com/IliaSotnikov2005/golang-course/task2/gateway/internal/adapter/grpc"
-	"github.com/IliaSotnikov2005/golang-course/task2/gateway/internal/adapter/rest"
+	v1 "github.com/IliaSotnikov2005/golang-course/task2/gateway/internal/adapter/rest/v1"
 	httpapp "github.com/IliaSotnikov2005/golang-course/task2/gateway/internal/app/http"
 	"github.com/IliaSotnikov2005/golang-course/task2/gateway/internal/config"
 	"github.com/IliaSotnikov2005/golang-course/task2/gateway/internal/usecase"
@@ -23,7 +23,7 @@ func New(log *slog.Logger, cfg *config.Config) (*App, error) {
 	}
 
 	getRepoUseCase := usecase.NewGetRepositoryUseCase(grpcClient)
-	restHandler := rest.NewHandler(getRepoUseCase)
+	restHandler := v1.NewHandler(getRepoUseCase)
 	httpServer := httpapp.New(log, cfg, restHandler)
 
 	return &App{

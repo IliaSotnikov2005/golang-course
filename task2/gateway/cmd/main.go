@@ -8,6 +8,7 @@ import (
 
 	"github.com/IliaSotnikov2005/golang-course/task2/gateway/internal/app"
 	"github.com/IliaSotnikov2005/golang-course/task2/gateway/internal/config"
+	"github.com/IliaSotnikov2005/golang-course/task2/gateway/internal/logger/sl"
 )
 
 func Must[T any](obj T, err error) T {
@@ -18,40 +19,19 @@ func Must[T any](obj T, err error) T {
 	return obj
 }
 
-func setupLogger(level slog.Level) *slog.Logger {
-	opts := &slog.HandlerOptions{
-		Level: level,
-	}
-
-	handler := slog.NewTextHandler(os.Stdout, opts)
-	return slog.New(handler)
-}
-
-func getLogLevel(cfg *config.Config) slog.Level {
-	switch cfg.LogLevel {
-	case "debug":
-		return slog.LevelDebug
-	case "info":
-		return slog.LevelInfo
-	case "warn":
-		return slog.LevelWarn
-	case "error":
-		return slog.LevelError
-	default:
-		return slog.LevelInfo
-	}
-}
-
+// @title           GitHub Collector API
+// @version         1.0
+// @description     API Gateway for collecting GitHub repository information.
+// @host            localhost:8080
+// @BasePath        /
 func main() {
 	cfg := Must(config.Load())
 
-	log := setupLogger(getLogLevel(cfg))
+	log := sl.SetupLogger(cfg)
 
 	application := Must(app.New(log, cfg))
 
-	go func() {
-		application.HTTPServer.MustRun()
-	}()
+	application.HTTPServer.MustRun()
 
 	log.Info("gateway started", slog.String("port", cfg.HTTP.Port))
 

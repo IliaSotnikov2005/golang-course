@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/IliaSotnikov2005/golang-course/task2/gateway/internal/adapter/rest"
+	v1 "github.com/IliaSotnikov2005/golang-course/task2/gateway/internal/adapter/rest/v1"
 	"github.com/IliaSotnikov2005/golang-course/task2/gateway/internal/config"
 )
 
@@ -20,7 +20,7 @@ type App struct {
 func New(
 	log *slog.Logger,
 	cfg *config.Config,
-	handler *rest.Handler,
+	handler *v1.Handler,
 ) *App {
 	httpServer := &http.Server{
 		Addr:         cfg.HTTP.Port,
@@ -38,32 +38,34 @@ func New(
 }
 
 func (a *App) MustRun() {
-	if err := a.Run(); err != nil {
-		panic(err)
-	}
+	go func() {
+		if err := a.Run(); err != nil {
+			panic(err)
+		}
+	}()
 }
 
 func (a *App) Run() error {
-	const op = "httpapp.Run"
+	const operation = "httpapp.Run"
 
 	log := a.log.With(
-		slog.String("op", op),
+		slog.String("operation", operation),
 		slog.String("port", a.port),
 	)
 
 	log.Info("HTTP server is starting")
 
 	if err := a.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		return fmt.Errorf("%s: %w", op, err)
+		return fmt.Errorf("%s: %w", operation, err)
 	}
 
 	return nil
 }
 
 func (a *App) Stop() {
-	const op = "httpapp.Stop"
+	const operation = "httpapp.Stop"
 
-	a.log.With(slog.String("op", op)).Info("stopping HTTP server")
+	a.log.With(slog.String("operation", operation)).Info("stopping HTTP server")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
