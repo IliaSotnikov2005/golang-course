@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+package collector;
+
+option go_package = "github.com/IliaSotnikov2005/golang-course/task2/api/proto/gen;collectorpb";
+
+// GetRepositoryRequest contains parameters for requesting repository information.
+message GetRepositoryRequest {
+    string owner = 1;
+
+    string repo = 2;
+}
+
+// RepositoryInfo represents GitHub repository information.
+message GetRepositoryResponse {
+    string name = 1;
+
+    string description = 2;
+    
+    int32 stargazers = 3;
+	
+    int32 forks = 4;
+	
+    google.protobuf.Timestamp created_at = 5;
+	
+    string html_url = 6;
+}
+
+// CollectorService provides methods to retrieve information about GitHub repositories.
+service CollectorService {
+    
+    // GetRepository fetches information about a repository by owner and name.
+    //
+    // Potential Errors:
+    //   - NOT_FOUND: Repository does not exist or has been moved.
+    //   - INVALID_ARGUMENT: Owner or Repo name is missing or malformed.
+    //   - PERMISSION_DENIED: Access to the repository is restricted (e.g., private repo).
+    //   - UNAUTHENTICATED: GitHub API authentication failed.
+    //   - RESOURCE_EXHAUSTED: GitHub API rate limit exceeded.
+    //   - DEADLINE_EXCEEDED: The request took too long to process.
+    //   - INTERNAL: An unexpected server-side error occurred.
+    rpc GetRepository(GetRepositoryRequest) returns (GetRepositoryResponse);
+}

@@ -1,0 +1,96 @@
+definitions:
+  rest.ErrorResponse:
+    properties:
+      error:
+        example: Not Found
+        type: string
+      message:
+        example: Repository not found
+        type: string
+    type: object
+  rest.HealthResponse:
+    properties:
+      status:
+        example: ok
+        type: string
+    type: object
+  rest.RepositoryResponse:
+    properties:
+      created_at:
+        example: "2014-08-19T22:33:41Z"
+        type: string
+      description:
+        example: The Go programming language
+        type: string
+      forks_count:
+        example: 12345
+        type: integer
+      html_url:
+        example: https://github.com/golang/go
+        type: string
+      name:
+        example: go
+        type: string
+      stargazers_count:
+        example: 123456
+        type: integer
+    type: object
+info:
+  contact: {}
+paths:
+  /api/v1/health:
+    get:
+      description: Returns service health status
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rest.HealthResponse'
+      summary: Health check
+      tags:
+      - system
+  /api/v1/repos/{owner}/{repo}:
+    get:
+      consumes:
+      - application/json
+      description: Returns information about a GitHub repository
+      parameters:
+      - description: Repository owner (user or organization)
+        in: path
+        name: owner
+        required: true
+        type: string
+      - description: Repository name
+        in: path
+        name: repo
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rest.RepositoryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/rest.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/rest.ErrorResponse'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/rest.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/rest.ErrorResponse'
+      summary: Get repository information
+      tags:
+      - repositories
+swagger: "2.0"

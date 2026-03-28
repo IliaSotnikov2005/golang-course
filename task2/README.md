@@ -1,68 +1,134 @@
-# Домашнее задание №2
-Распределенная система для получения информации о репозиториях GitHub
+# Distributed Repository Viewer
 
----
+A microservices-based system for retrieving GitHub repository information. Consists of two services: Collector (gRPC) and Gateway (HTTP REST).
 
-## Задача
+## Architecture
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Client    │---->│   Gateway   │---->│  Collector  │---->│  GitHub API │
+│ (HTTP/REST) │     │  (REST API) │     │   (gRPC)    │     │             │
+└─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘
+      │                   │                   │
+      v                   v                   v
+ HTTP 200-500        gRPC codes         HTTP 200-500
+ (from gateway)    (from collector)    (from github API)
+```
 
-Необходимо эволюционировать CLI-инструмент из первого задания в распределенную систему, состоящую из двух микросервисов: API Gateway и Collector. Сервисы должны взаимодействовать между собой по протоколу gRPC, а внешние запросы должны приниматься по REST.
+### Services
 
-Оба сервиса должны быть реализованы с соблюдением принципов Чистой архитектуры (Clean Architecture).
+1. **Collector** (gRPC Server)
+   - Fetches data from GitHub API
+   - Returns repository information
+   - Port (default): 50051
 
-1. Сервис Collector
-- Является gRPC-сервером.
-- Инкапсулирует логику работы с GitHub API (используя наработки из ДЗ №1).
-- Принимает запрос с данными репозитория (owner/repo) и возвращает информацию о нем.
+2. **Gateway** (HTTP Server)
+   - Provides REST API for clients
+   - Proxies requests to Collector
+   - Generates Swagger documentation
+   - Port (default): 8080
 
-2. Сервис API Gateway
-- Является REST-сервером и одновременно gRPC-клиентом.
-- Принимает внешние HTTP-запросы.
-- Пробрасывает запрос в сервис Collector через gRPC.
-- Предоставляет спецификацию Swagger (OpenAPI) для тестирования запросов и веб интерфейса.
+## Project Structure
+```
+.
+├── collector/ # Collector service
+│ ├── cmd/
+│ │ └── main.go # Entry point
+│ ├── internal/
+│ │ ├── adapter/ # External system adapters
+│ │ │ ├── github/ # GitHub API client
+│ │ │ └── grpc/ # gRPC handler
+│ │ ├── api/ # API contracts
+│ │ │ └── proto/ # Protocol Buffers
+│ │ ├── app/ # Application
+│ │ │ └── grpc/ # gRPC server
+│ │ ├── config/ # Configuration
+│ │ ├── domain/ # Domain models and errors
+│ │ └── usecase/ # Business logic
+│ ├── config/ # Configuration files
+│ ├── Dockerfile
+│ └── go.mod
+│
+├── gateway/ # Gateway service
+│ ├── cmd/
+│ │ └── main.go # Entry point
+│ ├── internal/
+│ │ ├── adapter/ # Adapters
+│ │ │ ├── grpc/ # gRPC client
+│ │ │ └── rest/ # REST handler
+│ │ ├── api/ # API contracts
+│ │ │ └── proto/ # Protocol Buffers
+│ │ ├── app/ # Application
+│ │ │ └── http/ # HTTP server
+│ │ ├── config/ # Configuration
+│ │ ├── domain/ # Domain models
+│ │ └── usecase/ # Business logic
+│ ├── docs/ # Swagger documentation
+│ ├── config/ # Configuration files
+│ ├── Dockerfile
+│ └── go.mod
+│
+├── docker-compose.yaml # Service orchestration
+└── README.md
+```
 
----
+## Installation and Running
 
-## Минимальная информация, которую необходимо выводить
+### Requirements
 
-Та же, что и в первом задании, но в формате JSON ответа через API Gateway:
-1. Имя репозитория
-2. Описание
-3. Количество звёзд
-4. Количество форков
-5. Дата создания
+- Docker and Docker Compose v2
+- Go 1.26+
 
----
+### Run with Docker Compose
 
-## Требования
+1. Clone the repository:
+```bash
+git clone git@github.com:IliaSotnikov2005/golang-course.git
+cd task2
+```
 
-- Взаимодействие: Строго gRPC между сервисами.
-- Архитектура: Разделение на слои (Use Cases, Domain, Handler, Adapter) в каждом сервисе.
-- Swagger: Автоматическая или ручная генерация документации, доступная по эндпоинту (например, /swagger/index.html).
-- Обработка ошибок:
-    - Корректные статус-коды gRPC.
-    - Маппинг ошибок gRPC в соответствующие HTTP-коды на уровне Gateway (например, 404 если репозиторий не найден).
-- Оформление: Наличие docker-compose.yaml для запуска обоих сервисов одной командой будет большим плюсом.
+2. Configure services:
+```bash
+collector/config/<your-config.yaml>
+gateway/config/<your-config.yaml>
+```
 
----
+3. Start services:
+```bash
+docker-compose up -d
+```
 
-## Формат сдачи задания
+4. Check status:
+```bash
+docker-compose ps
+curl http://localhost:8080/api/v1/health
+```
 
-Необходимо добавить ревьюеров (если ранее не были добавлены) в collaborators репозитория: Settings -> Collaborators -> Add people
-Ревьюеры:
-- https://github.com/suvorovrain
-- https://github.com/Dabzelos
-- https://github.com/vacmannnn
+### Usage Examples
+Once both services are running:
+#### curl requests
+```bash
+# Get Go repository information
+curl http://localhost:8080/api/v1/repos/golang/go
 
-Работу над заданием необходимо вести в отдельной ветке.
+# Get Kubernetes repository
+curl http://localhost:8080/api/v1/repos/kubernetes/kubernetes
 
-В конце работы необходимо открыть PR из вашей ветки в main **вашего** форка и отметить ревьюеров в разделе Reviewers.
+# Health check
+curl http://localhost:8080/api/v1/health
 
-В PR с выполненным заданием необходимо приложить скриншот работы приложения через Swagger UI или Postman :).
+# Error handling - non-existent repository
+curl http://localhost:8080/api/v1/repos/golang/nonexistent
+```
 
----
+### Error Mapping
 
-### Полезные материалы
-
-- [Чистая архитектура в Go (статья)](https://pavel-v-p.medium.com/clean-architecture-in-go-2708304217f2)
-- [Документация gRPC для Go](https://grpc.io/docs/languages/go/basics/)
-- [Библиотека Swag для генерации Swagger](https://github.com/swaggo/swag)
+| GitHub API | Domain Error | gRPC Code | HTTP Code |
+|------------|--------------|-----------|-----------|
+| 404 Not Found | `ErrNotFound` | `NotFound` | 404 |
+| 301 Moved Permanently | `ErrMovedPermanently` | `NotFound` | 404 |
+| 403 Forbidden | `ErrForbidden` | `PermissionDenied` | 403 |
+| 401 Unauthorized | `ErrUnauthorized` | `Unauthenticated` | 401 |
+| 429 Rate Limit | `ErrRateLimit` | `ResourceExhausted` | 429 |
+| 400 Bad Request | `ErrInvalidInput` | `InvalidArgument` | 400 |
+| Timeout | `ErrTimeout` | `DeadlineExceeded` | 504 |
+| Other | `ErrInternal` | `Internal` | 500 |
