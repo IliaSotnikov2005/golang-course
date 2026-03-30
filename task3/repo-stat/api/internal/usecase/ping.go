@@ -11,9 +11,9 @@ type PingUseCase struct {
 	subscriber Pinger
 }
 
-func NewPingUseCase(prcessor Pinger, subscriber Pinger) *PingUseCase {
+func NewPingUseCase(processor Pinger, subscriber Pinger) *PingUseCase {
 	return &PingUseCase{
-		processor:  prcessor,
+		processor:  processor,
 		subscriber: subscriber,
 	}
 }

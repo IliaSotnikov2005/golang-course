@@ -43,7 +43,9 @@ func New(
 
 	grpcHandler := grpccontroller.NewHandler(log, getRepoUseCase, pingUseCase)
 
-	gRPCServer := grpc.NewServer(grpc.ConnectionTimeout(cfgGRPC.Timeout))
+	gRPCServer := grpc.NewServer(
+		grpc.ConnectionTimeout(cfgGRPC.Timeout),
+		grpc.ChainUnaryInterceptor(grpccontroller.LoggingInterceptor(log)))
 	collector.RegisterCollectorServiceServer(gRPCServer, grpcHandler)
 
 	return &App{

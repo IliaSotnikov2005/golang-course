@@ -25,7 +25,6 @@ require (
 require (
 	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/go-chi/chi v1.5.5
-	github.com/go-chi/chi/v5 v5.2.5 // indirect
 	github.com/go-chi/cors v1.2.2
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/swaggo/http-swagger v1.3.4

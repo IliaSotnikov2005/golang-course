@@ -30,10 +30,6 @@ func NewHandler(
 }
 
 func (h *Handler) GetRepository(ctx context.Context, req *collector.GetRepositoryRequest) (*collector.GetRepositoryResponse, error) {
-	const operation = "grpccontroller.Handler.GetRepository"
-	log := h.log.With(slog.String("operation", operation))
-	log.Debug("grpc: GetRepository request", "owner", req.GetOwner(), "repo", req.GetRepo())
-
 	repo, err := h.getRepositoryUseCase.Execute(ctx, req.GetOwner(), req.GetRepo())
 	if err != nil {
 		h.log.Error("usecase error", slog.String("error", err.Error()))
@@ -50,10 +46,6 @@ func (h *Handler) GetRepository(ctx context.Context, req *collector.GetRepositor
 }
 
 func (h *Handler) Ping(ctx context.Context, req *collector.PingRequest) (*collector.PingResponse, error) {
-	const operation = "grpccontroller.Handler.Ping"
-	log := h.log.With(slog.String("operation", operation))
-	log.Debug("grpc: Ping request")
-
 	status := h.pingUseCase.Execute(ctx)
 
 	if status != domain.PingStatusUp {
