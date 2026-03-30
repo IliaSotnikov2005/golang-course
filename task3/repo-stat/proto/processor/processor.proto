@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package processor;
+
+option go_package = "github.com/IliaSotnikov2005/golang-course/task3/repo-stat/proto/processor";
+
+import "google/protobuf/timestamp.proto";
+
+// ProcessorService aggregates data and provides communication between API Gateway and Collector service
+service ProcessorService {
+  // GetRepository fetches information about a repository by owner and name.
+  //
+  // Potential Errors:
+  //   - NOT_FOUND: Repository does not exist or has been moved.
+  //   - INVALID_ARGUMENT: Owner or Repo name is missing or malformed.
+  //   - PERMISSION_DENIED: Access to the repository is restricted (e.g., private repo).
+  //   - UNAUTHENTICATED: GitHub API authentication failed.
+  //   - RESOURCE_EXHAUSTED: GitHub API rate limit exceeded.
+  //   - DEADLINE_EXCEEDED: The request took too long to process.
+  //   - INTERNAL: An unexpected server-side error occurred.
+  rpc GetRepository(GetRepositoryRequest) returns (GetRepositoryResponse);
+  
+  // Ping checks whether the service is available.
+  rpc Ping(PingRequest) returns (PingResponse);
+}
+
+// GetRepositoryRequest contains parameters for requesting repository information.
+message GetRepositoryRequest {
+  string owner = 1;
+  string repo = 2;
+}
+
+// RepositoryInfo represents GitHub repository information.
+message GetRepositoryResponse {
+  string name = 1;
+  string description = 2;
+  int32 stargazers = 3;
+  int32 forks = 4;
+  google.protobuf.Timestamp created_at = 5;
+  string html_url = 6;
+}
+
+// PingRequest represents ping request.
+message PingRequest {}
+
+// PingResponse represents ping reply.
+message PingResponse {
+  string reply = 1;
+}

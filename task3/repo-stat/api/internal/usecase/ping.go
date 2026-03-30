@@ -2,23 +2,38 @@ package usecase
 
 import (
 	"context"
-	"repo-stat/api/internal/domain"
+
+	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/api/internal/domain"
 )
 
-type Pinger interface {
-	Ping(ctx context.Context) domain.PingStatus
+type PingUseCase struct {
+	processor  Pinger
+	subscriber Pinger
 }
 
-type Ping struct {
-	pinger Pinger
-}
-
-func NewPing(pinger Pinger) *Ping {
-	return &Ping{
-		pinger: pinger,
+func NewPingUseCase(prcessor Pinger, subscriber Pinger) *PingUseCase {
+	return &PingUseCase{
+		processor:  prcessor,
+		subscriber: subscriber,
 	}
 }
 
-func (u *Ping) Execute(ctx context.Context) domain.PingStatus {
-	return u.pinger.Ping(ctx)
+func (u *PingUseCase) Execute(ctx context.Context) (domain.PingResponse, bool) {
+	pStatus := u.processor.Ping(ctx)
+	sStatus := u.subscriber.Ping(ctx)
+
+	isOk := pStatus == domain.PingStatusUp && sStatus == domain.PingStatusUp
+
+	statusText := "ok"
+	if !isOk {
+		statusText = "degraded"
+	}
+
+	return domain.PingResponse{
+		Status: statusText,
+		Services: []domain.ServiceStatus{
+			{Name: "processor", Status: string(pStatus)},
+			{Name: "subscriber", Status: string(sStatus)},
+		},
+	}, isOk
 }

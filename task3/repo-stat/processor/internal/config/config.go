@@ -10,10 +10,9 @@ import (
 )
 
 type Config struct {
-	LogLevel      string        `yaml:"log-level" env-default:"INFO"`
-	GRPCServer    GRPCServer    `yaml:"grpc_server"`
-	CollectorAddr string        `yaml:"collector_addr" env-required:"true"`
-	Timeout       time.Duration `yaml:"timeout" env-default:"5s"`
+	LogLevel      string     `yaml:"log-level" env-default:"INFO"`
+	GRPCServer    GRPCServer `yaml:"grpc_server"`
+	CollectorAddr string     `yaml:"collector_addr" env-required:"true"`
 }
 
 type GRPCServer struct {

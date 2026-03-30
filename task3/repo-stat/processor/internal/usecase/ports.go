@@ -9,7 +9,3 @@ import (
 type RepositoryProvider interface {
 	GetRepository(ctx context.Context, owner, repo string) (*domain.Repository, error)
 }
-
-type HealthChecker interface {
-	Ping(ctx context.Context) (domain.ServiceStatus, error)
-}
