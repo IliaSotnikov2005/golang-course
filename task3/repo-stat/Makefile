@@ -47,5 +47,5 @@ tools:
 
 test:
 	go test -race -coverprofile cover.out \
-		$(shell go list ./... | grep -E -v 'repo-stat/(proto)')
+		$(shell go list ./... | grep -E -v 'github.com/IliaSotnikov2005/golang-course/task3/repostat/(proto)')
 	go tool cover -html=cover.out -o cover.html
