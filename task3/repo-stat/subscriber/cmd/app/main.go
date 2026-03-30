@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"repo-stat/platform/grpcserver"
-	"repo-stat/platform/logger"
-	subscriberpb "repo-stat/proto/subscriber"
-	"repo-stat/subscriber/config"
-	grpccontroller "repo-stat/subscriber/internal/controller/grpc"
-	"repo-stat/subscriber/internal/usecase"
+
+	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/platform/grpcserver"
+	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/platform/logger"
+	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/platform/must"
+	subscriberpb "github.com/IliaSotnikov2005/golang-course/task3/repo-stat/proto/subscriber"
+	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/subscriber/config"
+	grpccontroller "github.com/IliaSotnikov2005/golang-course/task3/repo-stat/subscriber/internal/controller/grpc"
+	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/subscriber/internal/usecase"
 )
 
 func run(ctx context.Context) error {
@@ -21,7 +23,7 @@ func run(ctx context.Context) error {
 
 	cfg := config.MustLoad(configPath)
 
-	log := logger.MustMakeLogger(cfg.Logger.LogLevel)
+	log := must.Do(logger.MakeLogger(cfg.Logger.LogLevel))
 	log.Info("starting subscriber server...")
 	log.Debug("debug messages are enabled")
 

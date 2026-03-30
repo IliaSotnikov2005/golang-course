@@ -1,9 +1,9 @@
 package config
 
 import (
-	"repo-stat/platform/env"
-	"repo-stat/platform/grpcserver"
-	"repo-stat/platform/logger"
+	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/platform/env"
+	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/platform/grpcserver"
+	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/platform/logger"
 )
 
 type App struct {
