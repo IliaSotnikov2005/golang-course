@@ -11,6 +11,11 @@ import (
 	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/platform/must"
 )
 
+// @title           Repo Stat API
+// @version         1.0
+// @description     A service for collecting information of GitHub repositories.
+// @host            localhost:8080
+// @BasePath        /api
 func main() {
 	cfg := must.Do(config.Load())
 

@@ -23,21 +23,17 @@ func NewHandler(l *slog.Logger, g *usecase.GetRepositoryUseCase, p *usecase.Ping
 }
 
 // GetRepository godoc
-// @Summary      Get repository information
-// @Description  Returns information about a GitHub repository
+// @Summary      Получить информацию о репозитории
+// @Description  Возвращает данные о звездах, форках и описании репозитория по его URL
 // @Tags         repositories
 // @Accept       json
 // @Produce      json
-// @Param        owner   path      string  true  "Repository owner (user or organization)"
-// @Param        repo    path      string  true  "Repository name"
-// @Success      200     {object}  RepositoryResponse
-// @Failure      400     {object}  ErrorResponse  "Invalid input"
-// @Failure      403     {object}  ErrorResponse  "Access forbidden"
-// @Failure      404     {object}  ErrorResponse  "Repository not found"
-// @Failure      429     {object}  ErrorResponse  "Rate limit exceeded"
-// @Failure      500     {object}  ErrorResponse  "Internal server error"
-// @Failure      504     {object}  ErrorResponse  "Request timeout"
-// @Router       /api/v1/repos/{owner}/{repo} [get]
+// @Param        url   query     string  true  "GitHub URL (e.g. https://github.com/google/go-github)"
+// @Success      200   {object}  v1.RepositoryResponse
+// @Failure      400   {object}  v1.ErrorResponse
+// @Failure      404   {object}  v1.ErrorResponse
+// @Failure      500   {object}  v1.ErrorResponse
+// @Router       /v1/repos/info [get]
 func (h *Handler) getRepository(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.Query().Get("url")
 	if url == "" {
@@ -63,6 +59,14 @@ func (h *Handler) getRepository(w http.ResponseWriter, r *http.Request) {
 	h.respondJSON(w, http.StatusOK, response)
 }
 
+// healthCheck godoc
+// @Summary      Checking the service status (Healthcheck)
+// @Description  Returns API status and availability of dependent microservices (Collector, Subscriber)
+// @Tags         system
+// @Produce      json
+// @Success      200  {object}  HealthResponse  "All systems are working fine"
+// @Failure      503  {object}  HealthResponse  "One or more services are unavailable"
+// @Router       /health [get]
 func (h *Handler) healthCheck(w http.ResponseWriter, r *http.Request) {
 	res, isOk := h.pingUseCase.Execute(r.Context())
 
