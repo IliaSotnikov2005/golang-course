@@ -21,21 +21,21 @@ test: check-container-runtime ## Up containers and run tests
 	@$(MAKE) up
 	@echo "Waiting for cluster to start" \
 		&& for i in $$(seq 15); do \
-			curl -sf http://localhost:28080 >/dev/null 2>&1 && break \
+			curl -sf http://localhost:8080 >/dev/null 2>&1 && break \
 				|| true; \
 			sleep 1; \
 		done || { echo "Error: timeout"; exit 1; }
 	@$(MAKE) run-tests; status=$$?; $(MAKE) down-volumes; exit $$status
 
 lint: ## Run linters
-	$(MAKE) -C github.com/IliaSotnikov2005/golang-course/task3/repo-stat lint
+	$(MAKE) -C repo-stat lint
 
 proto: ## Compile protobuf files
-	$(MAKE) -C github.com/IliaSotnikov2005/golang-course/task3/repo-stat protobuf
+	$(MAKE) -C repo-stat protobuf
 
 unit: ## Run tests and generate coverage report
-	$(MAKE) -C github.com/IliaSotnikov2005/golang-course/task3/repo-stat test
-	mv github.com/IliaSotnikov2005/golang-course/task3/repo-stat/cover.html .
+	$(MAKE) -C repo-stat test
+	mv repo-stat/cover.html .
 
 check-container-runtime: ## Check container runtime is available
 ifeq (0,$(MAKELEVEL))
