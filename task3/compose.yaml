@@ -56,7 +56,7 @@ services:
     restart: "no"
     depends_on:
       - api
-    entrypoint: ["true"]
+    # entrypoint: ["true"]
 
 networks:
   repo-network:
