@@ -21,9 +21,7 @@ func LoggingInterceptor(log *slog.Logger) grpc.UnaryServerInterceptor {
 		}
 
 		if err != nil {
-			finalAttrs := append(attributes, slog.String("error", err.Error()))
-
-			log.LogAttrs(ctx, slog.LevelError, "grpc request failed", finalAttrs...)
+			log.LogAttrs(ctx, slog.LevelError, "grpc request failed", append(attributes, slog.String("error", err.Error()))...)
 		} else {
 			log.LogAttrs(ctx, slog.LevelInfo, "grpc request success", attributes...)
 		}
