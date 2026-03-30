@@ -28,14 +28,14 @@ test: check-container-runtime ## Up containers and run tests
 	@$(MAKE) run-tests; status=$$?; $(MAKE) down-volumes; exit $$status
 
 lint: ## Run linters
-	$(MAKE) -C repo-stat lint
+	$(MAKE) -C github.com/IliaSotnikov2005/golang-course/task3/repo-stat lint
 
 proto: ## Compile protobuf files
-	$(MAKE) -C repo-stat protobuf
+	$(MAKE) -C github.com/IliaSotnikov2005/golang-course/task3/repo-stat protobuf
 
 unit: ## Run tests and generate coverage report
-	$(MAKE) -C repo-stat test
-	mv repo-stat/cover.html .
+	$(MAKE) -C github.com/IliaSotnikov2005/golang-course/task3/repo-stat test
+	mv github.com/IliaSotnikov2005/golang-course/task3/repo-stat/cover.html .
 
 check-container-runtime: ## Check container runtime is available
 ifeq (0,$(MAKELEVEL))

@@ -1,4 +1,4 @@
-module repo-stat
+module github.com/IliaSotnikov2005/golang-course/task3/repo-stat
 
 go 1.25.0
 

@@ -20,9 +20,9 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version-file: task3/repo-stat/go.mod
+          go-version-file: task3/github.com/IliaSotnikov2005/golang-course/task3/repo-stat/go.mod
           cache: true
-          cache-dependency-path: task3/repo-stat/go.sum
+          cache-dependency-path: task3/github.com/IliaSotnikov2005/golang-course/task3/repo-stat/go.sum
 
       - name: Install protoc
         run: |
@@ -30,7 +30,7 @@ jobs:
           sudo apt-get install -y protobuf-compiler
 
       - name: Install tools
-        run: make -C repo-stat tools
+        run: make -C github.com/IliaSotnikov2005/golang-course/task3/repo-stat tools
 
       - name: Check protobuf generation
         run: |

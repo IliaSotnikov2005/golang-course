@@ -1,0 +1,8 @@
+log-level: "DEBUG"
+grpc:
+  port: ":8081"
+  timeout_seconds: 10
+github:
+  baseurl: "https://api.github.com/repos"
+  timeout_seconds: 10
+  user-agent: "Collector-Service/1.0"

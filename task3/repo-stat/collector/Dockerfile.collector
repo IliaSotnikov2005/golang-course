@@ -1,0 +1,45 @@
+# Stage 1: Build
+FROM golang:1.26.1-alpine AS builder
+
+RUN apk add --no-cache git ca-certificates
+
+# Устанавливаем рабочую директорию в корень проекта (task3)
+WORKDIR /app
+
+# 1. Сначала копируем только файлы модулей из подпапки
+COPY repo-stat/go.mod repo-stat/go.sum ./repo-stat/
+# Переходим в папку с go.mod, чтобы скачать зависимости
+RUN cd repo-stat && go mod download
+
+# 2. Копируем всё остальное содержимое task3
+COPY . .
+
+# 3. Собираем бинарник
+# Мы заходим в папку repo-stat, чтобы go build видел контекст модуля
+WORKDIR /app/repo-stat
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /collector-bin ./collector/cmd/main.go
+
+# Stage 2: Final
+FROM alpine:latest
+RUN apk --no-cache add ca-certificates curl
+
+WORKDIR /app
+
+# Копируем бинарник (он лежит в корне образа /collector-bin)
+COPY --from=builder /collector-bin ./collector
+
+# Создаем структуру папок для конфига
+RUN mkdir -p config
+# Копируем конфиг из билдера (путь в билдере был /app/repo-stat/...)
+COPY --from=builder /app/repo-stat/collector/config/config.yaml ./config/config.yaml
+
+RUN addgroup -g 1001 -S appgroup && \
+    adduser -u 1001 -S appuser -G appgroup && \
+    chown -R appuser:appgroup /app && \
+    chmod +x ./collector
+
+USER appuser
+EXPOSE 50051
+
+ENTRYPOINT ["./collector"]
+CMD ["-config=config/config.yaml"]
