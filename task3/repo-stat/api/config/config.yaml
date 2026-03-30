@@ -6,5 +6,5 @@ http:
   idle_timeout_seconds: 30
 
 services:
-  processor: ":8082"
-  subscriber: ":8083"
+  processor: "processor:8082"
+  subscriber: "subscriber:8083"
