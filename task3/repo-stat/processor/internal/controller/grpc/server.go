@@ -6,7 +6,6 @@ import (
 
 	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/processor/internal/domain"
 	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/processor/internal/usecase"
-	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/proto/processor"
 	processorpb "github.com/IliaSotnikov2005/golang-course/task3/repo-stat/proto/processor"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -50,7 +49,7 @@ func (h *Handler) GetRepository(ctx context.Context, req *processorpb.GetReposit
 	}, nil
 }
 
-func (h *Handler) Ping(ctx context.Context, req *processorpb.PingRequest) (*processor.PingResponse, error) {
+func (h *Handler) Ping(ctx context.Context, req *processorpb.PingRequest) (*processorpb.PingResponse, error) {
 	const operation = "grpccontroller.Handler.Ping"
 	log := h.log.With(slog.String("operation", operation))
 	log.Debug("grpc: Ping request")
