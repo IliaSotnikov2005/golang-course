@@ -19,21 +19,34 @@ func NewPingUseCase(processor Pinger, subscriber Pinger) *PingUseCase {
 }
 
 func (u *PingUseCase) Execute(ctx context.Context) (domain.PingResponse, bool) {
-	pStatus := u.processor.Ping(ctx)
-	sStatus := u.subscriber.Ping(ctx)
+	resChan := make(chan domain.ServiceStatus, 2)
 
-	isOk := pStatus == domain.PingStatusUp && sStatus == domain.PingStatusUp
+	go func() {
+		resChan <- domain.ServiceStatus{Name: "processor", Status: string(u.processor.Ping(ctx))}
+	}()
+
+	go func() {
+		resChan <- domain.ServiceStatus{Name: "subscriber", Status: string(u.subscriber.Ping(ctx))}
+	}()
+
+	var services []domain.ServiceStatus
+	allUp := true
+
+	for range 2 {
+		res := <-resChan
+		services = append(services, res)
+		if domain.PingStatus(res.Status) != domain.PingStatusUp {
+			allUp = false
+		}
+	}
 
 	statusText := "ok"
-	if !isOk {
+	if !allUp {
 		statusText = "degraded"
 	}
 
 	return domain.PingResponse{
-		Status: statusText,
-		Services: []domain.ServiceStatus{
-			{Name: "processor", Status: string(pStatus)},
-			{Name: "subscriber", Status: string(sStatus)},
-		},
-	}, isOk
+		Status:   statusText,
+		Services: services,
+	}, allUp
 }
