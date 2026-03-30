@@ -30,7 +30,7 @@ jobs:
           sudo apt-get install -y protobuf-compiler
 
       - name: Install tools
-        run: make -C task3/repo-stat tools
+        run: make -C repo-stat tools
 
       - name: Check protobuf generation
         run: |
