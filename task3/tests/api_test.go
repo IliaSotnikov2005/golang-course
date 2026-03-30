@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const address = "http://localhost:28080"
+const address = "http://api:8080"
 
 var client = http.Client{
 	Timeout: 30 * time.Second,
