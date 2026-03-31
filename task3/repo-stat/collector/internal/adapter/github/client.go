@@ -78,7 +78,7 @@ func (c *Client) GetRepository(ctx context.Context, owner, repo string) (*domain
 	}
 
 	return &domain.Repository{
-		Name:        ghResponse.Name,
+		FullName:    ghResponse.FullName,
 		Description: ghResponse.Description,
 		Stargazers:  ghResponse.Stargazers,
 		Forks:       ghResponse.Forks,
@@ -88,7 +88,7 @@ func (c *Client) GetRepository(ctx context.Context, owner, repo string) (*domain
 }
 
 type githubResponse struct {
-	Name        string    `json:"name"`
+	FullName    string    `json:"full_name"`
 	Description string    `json:"description"`
 	Stargazers  int       `json:"stargazers_count"`
 	Forks       int       `json:"forks_count"`

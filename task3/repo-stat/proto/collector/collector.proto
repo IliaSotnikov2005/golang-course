@@ -34,7 +34,7 @@ message GetRepositoryRequest {
 
 // GetRepositoryResponse represents GitHub repository information.
 message GetRepositoryResponse {
-  string name = 1;
+  string full_name = 1;
   string description = 2;
   int32 stargazers = 3;
   int32 forks = 4;

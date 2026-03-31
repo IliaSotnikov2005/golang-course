@@ -7,12 +7,13 @@
 package collector
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const (
@@ -78,7 +79,7 @@ func (x *GetRepositoryRequest) GetRepo() string {
 // RepositoryInfo represents GitHub repository information.
 type GetRepositoryResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	FullName      string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Description   string                 `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
 	Stargazers    int32                  `protobuf:"varint,3,opt,name=stargazers,proto3" json:"stargazers,omitempty"`
 	Forks         int32                  `protobuf:"varint,4,opt,name=forks,proto3" json:"forks,omitempty"`
@@ -120,7 +121,7 @@ func (*GetRepositoryResponse) Descriptor() ([]byte, []int) {
 
 func (x *GetRepositoryResponse) GetName() string {
 	if x != nil {
-		return x.Name
+		return x.FullName
 	}
 	return ""
 }

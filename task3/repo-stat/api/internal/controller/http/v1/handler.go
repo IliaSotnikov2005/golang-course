@@ -3,6 +3,7 @@ package v1
 import (
 	"log/slog"
 	"net/http"
+	"strings"
 
 	_ "github.com/IliaSotnikov2005/golang-course/task3/repo-stat/api/docs"
 	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/api/internal/usecase"
@@ -23,8 +24,8 @@ func NewHandler(l *slog.Logger, g *usecase.GetRepositoryUseCase, p *usecase.Ping
 }
 
 // GetRepository godoc
-// @Summary      Получить информацию о репозитории
-// @Description  Возвращает данные о звездах, форках и описании репозитория по его URL
+// @Summary      Gets information about GitHub repository
+// @Description  Returns data about stars, forks, and the repository description by its URL
 // @Tags         repositories
 // @Accept       json
 // @Produce      json
@@ -33,11 +34,16 @@ func NewHandler(l *slog.Logger, g *usecase.GetRepositoryUseCase, p *usecase.Ping
 // @Failure      400   {object}  v1.ErrorResponse
 // @Failure      404   {object}  v1.ErrorResponse
 // @Failure      500   {object}  v1.ErrorResponse
-// @Router       /v1/repos/info [get]
+// @Router       /v1/repositories/info [get]
 func (h *Handler) getRepository(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.Query().Get("url")
 	if url == "" {
-		h.respondJSON(w, http.StatusBadRequest, ErrorResponse{Message: "url parameter is required"})
+		h.respondJSON(w, http.StatusBadRequest, ErrorResponse{Error: "url parameter is required"})
+		return
+	}
+
+	if !strings.HasPrefix(url, "http") {
+		h.respondJSON(w, http.StatusBadRequest, ErrorResponse{Error: "invalid url format"})
 		return
 	}
 
@@ -66,7 +72,7 @@ func (h *Handler) getRepository(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Success      200  {object}  HealthResponse  "All systems are working fine"
 // @Failure      503  {object}  HealthResponse  "One or more services are unavailable"
-// @Router       /health [get]
+// @Router       /ping [get]
 func (h *Handler) healthCheck(w http.ResponseWriter, r *http.Request) {
 	res, isOk := h.pingUseCase.Execute(r.Context())
 

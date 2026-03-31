@@ -29,11 +29,11 @@ func (h *Handler) Router() chi.Router {
 	r.Get("/swagger/*", h.serveSwagger)
 
 	r.Route("/api/v1", func(r chi.Router) {
-		r.Get("/repos/info", h.getRepository)
+		r.Get("/repositories/info", h.getRepository)
 	})
 
 	r.Route("/api", func(r chi.Router) {
-		r.Get("/health", h.healthCheck)
+		r.Get("/ping", h.healthCheck)
 	})
 
 	return r

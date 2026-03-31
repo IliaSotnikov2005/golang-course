@@ -40,7 +40,7 @@ func (h *Handler) GetRepository(ctx context.Context, req *processorpb.GetReposit
 	}
 
 	return &processorpb.GetRepositoryResponse{
-		Name:        repo.Name,
+		FullName:    repo.FullName,
 		Description: repo.Description,
 		Stargazers:  int32(repo.Stargazers),
 		Forks:       int32(repo.Forks),

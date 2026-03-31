@@ -39,7 +39,7 @@ func (ca *collectorAdapter) GetRepository(ctx context.Context, owner, repo strin
 	}
 
 	return &domain.Repository{
-		Name:        response.Name,
+		FullName:    response.FullName,
 		Description: response.Description,
 		Stargazers:  int(response.Stargazers),
 		Forks:       int(response.Forks),

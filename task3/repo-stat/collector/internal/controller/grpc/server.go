@@ -36,7 +36,7 @@ func (h *Handler) GetRepository(ctx context.Context, req *collector.GetRepositor
 	}
 
 	return &collector.GetRepositoryResponse{
-		Name:        repo.Name,
+		FullName:    repo.FullName,
 		Description: repo.Description,
 		Stargazers:  int32(repo.Stargazers),
 		Forks:       int32(repo.Forks),

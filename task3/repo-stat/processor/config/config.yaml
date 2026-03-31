@@ -4,4 +4,4 @@ grpc_server:
   port: ":8082"
   timeout_seconds: 5
 
-collector_addr: "collector:8081"
+collector_addr: "localhost:8081"
