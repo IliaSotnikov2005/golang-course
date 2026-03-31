@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const address = "http://localhost:28080"
+const address = "http://localhost:8080"
 
 var client = http.Client{
 	Timeout: 30 * time.Second,
@@ -85,7 +85,7 @@ func TestPing(t *testing.T) {
 func TestRepositoryInfo(t *testing.T) {
 	waitForAPI(t)
 
-	resp, err := client.Get(address + "/api/repositories/info?url=https://github.com/golang/go")
+	resp, err := client.Get(address + "/api/v1/repositories/info?url=https://github.com/golang/go")
 	require.NoError(t, err, "cannot request repository info")
 	defer resp.Body.Close()
 
@@ -104,7 +104,7 @@ func TestRepositoryInfo(t *testing.T) {
 func TestRepositoryInfoWithoutURL(t *testing.T) {
 	waitForAPI(t)
 
-	resp, err := client.Get(address + "/api/repositories/info")
+	resp, err := client.Get(address + "/api/v1/repositories/info")
 	require.NoError(t, err, "cannot request repository info without url")
 	defer resp.Body.Close()
 
@@ -118,7 +118,7 @@ func TestRepositoryInfoWithoutURL(t *testing.T) {
 func TestRepositoryInfoInvalidURL(t *testing.T) {
 	waitForAPI(t)
 
-	resp, err := client.Get(address + "/api/repositories/info?url=not-a-valid-url")
+	resp, err := client.Get(address + "/api/v1/repositories/info?url=not-a-valid-url")
 	require.NoError(t, err, "cannot request repository info with invalid url")
 	defer resp.Body.Close()
 
@@ -150,7 +150,7 @@ func TestPingHelpfulFailureMessage(t *testing.T) {
 func TestRepositoryInfoHelpfulFailureMessage(t *testing.T) {
 	waitForAPI(t)
 
-	resp, err := client.Get(address + "/api/repositories/info?url=https://github.com/golang/go")
+	resp, err := client.Get(address + "/api/v1/repositories/info?url=https://github.com/golang/go")
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
@@ -164,7 +164,7 @@ func TestRepositoryInfoHelpfulFailureMessage(t *testing.T) {
 func TestRepositoryInfoCreatedAtFormatPresent(t *testing.T) {
 	waitForAPI(t)
 
-	resp, err := client.Get(address + "/api/repositories/info?url=https://github.com/golang/go")
+	resp, err := client.Get(address + "/api/v1/repositories/info?url=https://github.com/golang/go")
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
@@ -181,8 +181,8 @@ func TestRepositoryInfoEndpointStable(t *testing.T) {
 	waitForAPI(t)
 
 	urls := []string{
-		address + "/api/repositories/info?url=https://github.com/golang/go",
-		address + "/api/repositories/info?url=https://github.com/kubernetes/kubernetes",
+		address + "/api/v1/repositories/info?url=https://github.com/golang/go",
+		address + "/api/v1/repositories/info?url=https://github.com/kubernetes/kubernetes",
 	}
 
 	for _, u := range urls {

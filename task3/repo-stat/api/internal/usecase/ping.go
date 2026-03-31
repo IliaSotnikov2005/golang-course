@@ -2,23 +2,51 @@ package usecase
 
 import (
 	"context"
-	"repo-stat/api/internal/domain"
+
+	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/api/internal/domain"
 )
 
-type Pinger interface {
-	Ping(ctx context.Context) domain.PingStatus
+type PingUseCase struct {
+	processor  Pinger
+	subscriber Pinger
 }
 
-type Ping struct {
-	pinger Pinger
-}
-
-func NewPing(pinger Pinger) *Ping {
-	return &Ping{
-		pinger: pinger,
+func NewPingUseCase(processor Pinger, subscriber Pinger) *PingUseCase {
+	return &PingUseCase{
+		processor:  processor,
+		subscriber: subscriber,
 	}
 }
 
-func (u *Ping) Execute(ctx context.Context) domain.PingStatus {
-	return u.pinger.Ping(ctx)
+func (u *PingUseCase) Execute(ctx context.Context) (domain.PingResponse, bool) {
+	resChan := make(chan domain.ServiceStatus, 2)
+
+	go func() {
+		resChan <- domain.ServiceStatus{Name: "processor", Status: string(u.processor.Ping(ctx))}
+	}()
+
+	go func() {
+		resChan <- domain.ServiceStatus{Name: "subscriber", Status: string(u.subscriber.Ping(ctx))}
+	}()
+
+	var services []domain.ServiceStatus
+	allUp := true
+
+	for range 2 {
+		res := <-resChan
+		services = append(services, res)
+		if domain.PingStatus(res.Status) != domain.PingStatusUp {
+			allUp = false
+		}
+	}
+
+	statusText := "ok"
+	if !allUp {
+		statusText = "degraded"
+	}
+
+	return domain.PingResponse{
+		Status:   statusText,
+		Services: services,
+	}, allUp
 }

@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 )
@@ -9,7 +10,7 @@ type Config struct {
 	LogLevel string `yaml:"log_level" default:"DEBUG"`
 }
 
-func MustMakeLogger(logLevel string) *slog.Logger {
+func MakeLogger(logLevel string) (*slog.Logger, error) {
 	var level slog.Level
 	switch logLevel {
 	case "DEBUG":
@@ -19,8 +20,9 @@ func MustMakeLogger(logLevel string) *slog.Logger {
 	case "ERROR":
 		level = slog.LevelError
 	default:
-		panic("unknown log level: " + logLevel)
+		return nil, fmt.Errorf("unknown log level: %s", logLevel)
 	}
+
 	handler := slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: level})
-	return slog.New(handler)
+	return slog.New(handler), nil
 }

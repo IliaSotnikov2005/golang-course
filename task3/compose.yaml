@@ -1,35 +1,49 @@
 services:
-  api:
-    image: api:latest
+  collector:
     build:
-      context: repo-stat
-      dockerfile: Dockerfile.api
-    container_name: api
-    restart: unless-stopped
+      context: ./repo-stat
+      dockerfile: ./Dockerfile.collector
+    container_name: collector
     ports:
-      - 28080:8080
+      - "8081:8081"
     volumes:
-      - ./repo-stat/api/config/config.yaml:/config.yaml
-    environment:
-      - LISTEN_ADDRESS=:8080
-      - SUBSCRIBER_ADDRESS=subscriber:8080
+      - ./repo-stat/collector/config/config.yaml:/config/config.yaml
+    network_mode: host
+  processor:
+    build:
+      context: ./repo-stat
+      dockerfile: ./Dockerfile.processor
+    container_name: processor
+    ports:
+      - "8082:8082"
+    volumes:
+      - ./repo-stat/processor/config/config.yaml:/config/config.yaml
     depends_on:
-      - subscriber
-
-  subscriber:
-    image: subscriber:latest
+      - collector
+    network_mode: host
+  api:
     build:
-      context: repo-stat
-      dockerfile: Dockerfile.subscriber
-    container_name: subscriber
-    restart: unless-stopped
+      context: ./repo-stat
+      dockerfile: ./Dockerfile.api
+    container_name: api
     ports:
-      - 28081:8080
+      - "8080:8080"
     volumes:
-      - ./repo-stat/subscriber/config/config.yaml:/config.yaml
-    environment:
-      - LISTEN_ADDRESS=:8080
-      - API_ADDRESS=api:8080
+      - ./repo-stat/api/config/config.yaml:/config/config.yaml
+    depends_on:
+      - processor
+      - subscriber
+    network_mode: host
+  subscriber:
+    build:
+      context: ./repo-stat
+      dockerfile: ./Dockerfile.subscriber
+    container_name: subscriber
+    ports:
+      - "8083:8083"
+    volumes:
+      - ./repo-stat/subscriber/config/config.yaml:/config/config.yaml
+    network_mode: host
   tests:
     image: tests:latest
     build:
@@ -38,4 +52,5 @@ services:
     restart: "no"
     depends_on:
       - api
-    entrypoint: ["true"]
+    network_mode: host
+    # entrypoint: ["true"]

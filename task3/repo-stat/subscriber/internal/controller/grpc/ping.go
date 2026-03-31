@@ -3,8 +3,9 @@ package grpc
 import (
 	"context"
 	"log/slog"
-	subscriberpb "repo-stat/proto/subscriber"
-	"repo-stat/subscriber/internal/usecase"
+
+	subscriberpb "github.com/IliaSotnikov2005/golang-course/task3/repo-stat/proto/subscriber"
+	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/subscriber/internal/usecase"
 )
 
 type Server struct {
