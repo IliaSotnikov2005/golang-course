@@ -1,0 +1,161 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "A service for collecting information of GitHub repositories.",
+        "title": "Repo Stat API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/api",
+    "paths": {
+        "/health": {
+            "get": {
+                "description": "Returns API status and availability of dependent microservices (Collector, Subscriber)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "system"
+                ],
+                "summary": "Checking the service status (Healthcheck)",
+                "responses": {
+                    "200": {
+                        "description": "All systems are working fine",
+                        "schema": {
+                            "$ref": "#/definitions/v1.HealthResponse"
+                        }
+                    },
+                    "503": {
+                        "description": "One or more services are unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/v1.HealthResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/repos/info": {
+            "get": {
+                "description": "Возвращает данные о звездах, форках и описании репозитория по его URL",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "repositories"
+                ],
+                "summary": "Получить информацию о репозитории",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "GitHub URL (e.g. https://github.com/google/go-github)",
+                        "name": "url",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.RepositoryResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "v1.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "Not Found"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Repository not found"
+                }
+            }
+        },
+        "v1.HealthResponse": {
+            "type": "object",
+            "properties": {
+                "services": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1.ServiceStatus"
+                    }
+                },
+                "status": {
+                    "type": "string",
+                    "example": "ok"
+                }
+            }
+        },
+        "v1.RepositoryResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2014-08-19T22:33:41Z"
+                },
+                "description": {
+                    "type": "string",
+                    "example": "The Go programming language"
+                },
+                "forks_count": {
+                    "type": "integer",
+                    "example": 12345
+                },
+                "html_url": {
+                    "type": "string",
+                    "example": "https://github.com/golang/go"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "go"
+                },
+                "stargazers_count": {
+                    "type": "integer",
+                    "example": 123456
+                }
+            }
+        },
+        "v1.ServiceStatus": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "processor"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "up"
+                }
+            }
+        }
+    }
+}

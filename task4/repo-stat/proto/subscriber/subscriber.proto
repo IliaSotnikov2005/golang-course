@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package subscriber.v1;
+
+option go_package = "github.com/IliaSotnikov2005/golang-course/task4/repo-stat/subscriber;subscriberv1";
+
+service Subscriber {
+  rpc Ping(PingRequest) returns (PingResponse);
+
+  rpc Subscribe(SubscribeRequest) returns (SubscribeResponse);
+
+  rpc Unsubscribe(UnsubscribeRequest) returns (UnsubscribeResponse);
+
+  rpc List(ListRequest) returns (ListResponse);
+}
+
+message PingRequest {
+}
+
+message PingResponse {
+  string reply = 1;
+}
+
+message SubscribeRequest {
+  string owner = 1;
+  string repo = 2;
+}
+
+message SubscribeResponse {
+  int64 id = 1;
+  string owner = 2;
+  string repo = 3;
+}
+
+message UnsubscribeRequest {
+  string owner = 1;
+  string repo = 2;
+}
+
+message UnsubscribeResponse {
+  bool success = 1;
+}
+
+message ListRequest {}
+
+message ListResponse {
+  message Subscription {
+    string owner = 1;
+    string repo = 2;
+  }
+
+  repeated Subscription subscriptions = 1;
+}

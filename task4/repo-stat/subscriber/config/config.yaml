@@ -1,0 +1,16 @@
+app:
+  app_name: "repo-stat-subscriber"
+
+grpc:
+  address: ":8083"
+  timeout_seconds: 5
+
+logger:
+  log_level: "DEBUG"
+
+github:
+  baseurl: "https://api.github.com/repos"
+  timeout_seconds: 10
+  user-agent: "Subscriber-Service/1.0"
+
+database-dsn: "postgres://user:password@localhost:5432/subscriber_db?sslmode=disable"
