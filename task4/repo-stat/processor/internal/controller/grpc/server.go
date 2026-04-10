@@ -53,6 +53,34 @@ func (h *Handler) GetRepository(ctx context.Context, req *processorpb.GetReposit
 		}}, nil
 }
 
+func (h *Handler) GetSubscriptionsInfo(ctx context.Context, req *processorpb.GetSubscriptionsInfoRequest) (*processorpb.GetSubscriptionsInfoResponse, error) {
+	const operation = "grpccontroller.Handler.GetSubscriptionsInfo"
+	log := h.log.With(slog.String("operation", operation))
+	log.Debug("grpc: GetSubscriptionsInfo request")
+
+	repositories, err := h.getSubscriptionsInfoUseCase.Execute(ctx)
+	if err != nil {
+		log.Error("usecase error", slog.String("error", err.Error()))
+		return nil, err
+	}
+
+	pbRepos := make([]*processorpb.RepositoryInfo, 0, len(repositories))
+
+	for _, repo := range repositories {
+		pbRepos = append(pbRepos, &processorpb.RepositoryInfo{
+			FullName:    repo.FullName,
+			Description: repo.Description,
+			Stargazers:  int32(repo.Stargazers),
+			Forks:       int32(repo.Forks),
+			CreatedAt:   timestamppb.New(repo.CreatedAt),
+			HtmlUrl:     repo.HTMLURL,
+		})
+	}
+
+	return &processorpb.GetSubscriptionsInfoResponse{
+		Repositories: pbRepos,
+	}, nil
+}
 func (h *Handler) Ping(ctx context.Context, req *processorpb.PingRequest) (*processorpb.PingResponse, error) {
 	const operation = "grpccontroller.Handler.Ping"
 	log := h.log.With(slog.String("operation", operation))
