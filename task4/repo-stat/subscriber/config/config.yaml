@@ -2,7 +2,7 @@ app:
   app_name: "repo-stat-subscriber"
 
 grpc:
-  address: ":8083"
+  port: ":8083"
   timeout_seconds: 5
 
 logger:

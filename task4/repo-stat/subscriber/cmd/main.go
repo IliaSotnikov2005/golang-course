@@ -21,7 +21,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	application := app.New(ctx, log, cfg)
+	application := must.Do(app.New(ctx, log, cfg))
 
 	errChan := make(chan error, 1)
 

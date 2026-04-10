@@ -13,6 +13,9 @@ import (
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/subscriber/internal/config"
 	grpccontroller "github.com/IliaSotnikov2005/golang-course/task4/repo-stat/subscriber/internal/controller/grpc"
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/subscriber/internal/usecase"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/grpc"
 
@@ -30,10 +33,23 @@ func New(
 	ctx context.Context,
 	log *slog.Logger,
 	cfg *config.Config,
-) *App {
+) (*App, error) {
+	m, err := migrate.New(
+		"file://migrations",
+		cfg.DatabaseDSN,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create migrate instance: %w", err)
+	}
+
+	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		return nil, fmt.Errorf("failed to run up migrations: %w", err)
+	}
+	log.Info("migrations applied successfully")
+
 	pool, err := pgxpool.New(ctx, cfg.DatabaseDSN)
 	if err != nil {
-		panic(fmt.Sprintf("failed to connect to db: %v", err))
+		return nil, fmt.Errorf("failed to connect to db: %w", err)
 	}
 
 	repo := db.NewPostgresRepository(pool)
@@ -56,7 +72,7 @@ func New(
 		gRPCServer: grpcServer,
 		pool:       pool,
 		port:       cfg.GRPC.Port,
-	}
+	}, nil
 }
 
 func (a *App) Run() error {

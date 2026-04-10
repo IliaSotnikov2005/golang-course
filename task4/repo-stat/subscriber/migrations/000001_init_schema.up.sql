@@ -1,7 +1,7 @@
 CREATE TABLE subscriptions (
     id SERIAL PRIMARY KEY,
-    owner TEXT NOT NULL,
-    repo TEXT NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    owner VARCHAR(255) NOT NULL,
+    repo VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(owner, repo)
 );
