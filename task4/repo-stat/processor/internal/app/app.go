@@ -10,14 +10,17 @@ import (
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/processor/internal/config"
 	grpccontroller "github.com/IliaSotnikov2005/golang-course/task4/repo-stat/processor/internal/controller/grpc"
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/processor/internal/usecase"
+	collectorpb "github.com/IliaSotnikov2005/golang-course/task4/repo-stat/proto/collector"
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/proto/processor"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type App struct {
 	log        *slog.Logger
 	gRPCServer *grpc.Server
 	port       string
+	conn       *grpc.ClientConn
 }
 
 func New(
@@ -25,15 +28,20 @@ func New(
 	cfgGRPC config.GRPCServer,
 	collectorAddress string,
 ) (*App, error) {
-	collectorClient, err := collector.NewCollectorAdapter(collectorAddress)
+	conn, err := grpc.NewClient(collectorAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		return nil, fmt.Errorf("failed to create collector client: %w", err)
+		panic(err)
 	}
 
-	getRepositoryUseCase := usecase.NewGetRepositoryUseCase(collectorClient)
+	collectorRawClient := collectorpb.NewCollectorServiceClient(conn)
+
+	collectorAdapter := collector.NewCollectorAdapter(collectorRawClient)
+
+	getRepositoryUseCase := usecase.NewGetRepositoryUseCase(collectorAdapter)
+	getSubscribtionsInfoUseCase := usecase.NewGetSubscriptionsInfoUseCase(collectorAdapter)
 	pingUseCase := usecase.NewPingUseCase()
 
-	gRPCHandler := grpccontroller.NewHandler(log, getRepositoryUseCase, pingUseCase)
+	gRPCHandler := grpccontroller.NewHandler(log, getRepositoryUseCase, getSubscribtionsInfoUseCase, pingUseCase)
 
 	gRPCServer := grpc.NewServer(grpc.ConnectionTimeout(cfgGRPC.Timeout))
 	processor.RegisterProcessorServiceServer(gRPCServer, gRPCHandler)
@@ -42,6 +50,7 @@ func New(
 		log:        log,
 		gRPCServer: gRPCServer,
 		port:       cfgGRPC.Port,
+		conn:       conn,
 	}, nil
 }
 
@@ -79,4 +88,6 @@ func (a *App) Stop() {
 	a.log.With(slog.String("operation", operation)).Info("stopping gRPC server", slog.String("port", a.port))
 
 	a.gRPCServer.GracefulStop()
+
+	a.conn.Close()
 }

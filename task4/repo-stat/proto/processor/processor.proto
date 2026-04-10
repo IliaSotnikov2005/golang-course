@@ -23,9 +23,20 @@ service ProcessorService {
   // - DEADLINE_EXCEEDED: Request timeout.
   // - INTERNAL: Unexpected server error.
   rpc GetRepository(GetRepositoryRequest) returns (GetRepositoryResponse);
+
+  rpc GetSubscriptionsInfo(GetSubscriptionsInfoRequest) returns (GetSubscriptionsInfoResponse);
   
   // Ping checks whether the service is available.
   rpc Ping(PingRequest) returns (PingResponse);
+}
+
+message RepositoryInfo {
+  string full_name = 1;
+  string description = 2;
+  int32 stargazers = 3;
+  int32 forks = 4;
+  google.protobuf.Timestamp created_at = 5;
+  string html_url = 6;
 }
 
 // GetRepositoryRequest contains parameters for requesting repo information.
@@ -36,12 +47,14 @@ message GetRepositoryRequest {
 
 // GetRepositoryResponse represents GitHub repository information.
 message GetRepositoryResponse {
-  string full_name = 1;
-  string description = 2;
-  int32 stargazers = 3;
-  int32 forks = 4;
-  google.protobuf.Timestamp created_at = 5;
-  string html_url = 6;
+  RepositoryInfo info = 1;
+}
+
+message GetSubscriptionsInfoRequest {
+}
+
+message GetSubscriptionsInfoResponse {
+  repeated RepositoryInfo repositories = 1;
 }
 
 // PingRequest represents ping request.

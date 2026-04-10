@@ -12,20 +12,23 @@ import (
 
 type Handler struct {
 	processorpb.UnimplementedProcessorServiceServer
-	log                  *slog.Logger
-	getRepositoryUseCase usecase.GetRepositoryUseCase
-	pingUseCase          usecase.PingUseCase
+	log                         *slog.Logger
+	getRepositoryUseCase        usecase.GetRepositoryUseCase
+	getSubscriptionsInfoUseCase usecase.GetSubscriptionsInfoUseCase
+	pingUseCase                 usecase.PingUseCase
 }
 
 func NewHandler(
 	log *slog.Logger,
 	getRepositoryUseCase *usecase.GetRepositoryUseCase,
+	getSubscribtionsInfoUseCase *usecase.GetSubscriptionsInfoUseCase,
 	pingUseCase *usecase.PingUseCase,
 ) *Handler {
 	return &Handler{
-		log:                  log,
-		getRepositoryUseCase: *getRepositoryUseCase,
-		pingUseCase:          *pingUseCase,
+		log:                         log,
+		getRepositoryUseCase:        *getRepositoryUseCase,
+		getSubscriptionsInfoUseCase: *getSubscribtionsInfoUseCase,
+		pingUseCase:                 *pingUseCase,
 	}
 }
 
@@ -40,13 +43,14 @@ func (h *Handler) GetRepository(ctx context.Context, req *processorpb.GetReposit
 	}
 
 	return &processorpb.GetRepositoryResponse{
-		FullName:    repo.FullName,
-		Description: repo.Description,
-		Stargazers:  int32(repo.Stargazers),
-		Forks:       int32(repo.Forks),
-		CreatedAt:   timestamppb.New(repo.CreatedAt),
-		HtmlUrl:     repo.HTMLURL,
-	}, nil
+		Info: &processorpb.RepositoryInfo{
+			FullName:    repo.FullName,
+			Description: repo.Description,
+			Stargazers:  int32(repo.Stargazers),
+			Forks:       int32(repo.Forks),
+			CreatedAt:   timestamppb.New(repo.CreatedAt),
+			HtmlUrl:     repo.HTMLURL,
+		}}, nil
 }
 
 func (h *Handler) Ping(ctx context.Context, req *processorpb.PingRequest) (*processorpb.PingResponse, error) {

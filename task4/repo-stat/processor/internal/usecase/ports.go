@@ -8,4 +8,5 @@ import (
 
 type RepositoryProvider interface {
 	GetRepository(ctx context.Context, owner, repo string) (*domain.Repository, error)
+	GetSubscriptionsInfo(ctx context.Context) ([]domain.Repository, error)
 }

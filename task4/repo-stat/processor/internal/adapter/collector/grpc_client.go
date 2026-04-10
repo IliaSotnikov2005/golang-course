@@ -2,29 +2,19 @@ package collector
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/processor/internal/domain"
 	collectorpb "github.com/IliaSotnikov2005/golang-course/task4/repo-stat/proto/collector"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 type collectorAdapter struct {
 	client collectorpb.CollectorServiceClient
-	conn   *grpc.ClientConn
 }
 
-func NewCollectorAdapter(address string) (*collectorAdapter, error) {
-	conn, err := grpc.NewClient(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to collector: %w", err)
-	}
-
+func NewCollectorAdapter(grpcClient collectorpb.CollectorServiceClient) *collectorAdapter {
 	return &collectorAdapter{
-		client: collectorpb.NewCollectorServiceClient(conn),
-		conn:   conn,
-	}, nil
+		client: grpcClient,
+	}
 }
 
 func (ca *collectorAdapter) GetRepository(ctx context.Context, owner, repo string) (*domain.Repository, error) {
@@ -39,14 +29,33 @@ func (ca *collectorAdapter) GetRepository(ctx context.Context, owner, repo strin
 	}
 
 	return &domain.Repository{
-		FullName:    response.FullName,
-		Description: response.Description,
-		Stargazers:  int(response.Stargazers),
-		Forks:       int(response.Forks),
-		CreatedAt:   response.CreatedAt.AsTime(),
+		FullName:    response.Info.FullName,
+		Description: response.Info.Description,
+		Stargazers:  int(response.Info.Stargazers),
+		Forks:       int(response.Info.Forks),
+		CreatedAt:   response.Info.CreatedAt.AsTime(),
 	}, nil
 }
 
-func (ca *collectorAdapter) Close() error {
-	return ca.conn.Close()
+func (ca *collectorAdapter) GetSubscriptionsInfo(ctx context.Context) ([]domain.Repository, error) {
+	req := &collectorpb.GetSubscriptionsInfoRequest{}
+
+	response, err := ca.client.GetSubscriptionsInfo(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	results := make([]domain.Repository, 0, len(response.GetRepositories()))
+	for _, r := range response.GetRepositories() {
+		results = append(results, domain.Repository{
+			FullName:    r.GetFullName(),
+			Description: r.GetDescription(),
+			Stargazers:  int(r.GetStargazers()),
+			Forks:       int(r.GetForks()),
+			CreatedAt:   r.GetCreatedAt().AsTime(),
+			HTMLURL:     r.GetHtmlUrl(),
+		})
+	}
+
+	return results, nil
 }
