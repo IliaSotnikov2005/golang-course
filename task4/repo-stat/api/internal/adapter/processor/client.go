@@ -6,11 +6,10 @@ import (
 	"log/slog"
 
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/api/internal/domain"
+	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/api/internal/utils"
 	processorpb "github.com/IliaSotnikov2005/golang-course/task4/repo-stat/proto/processor"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/status"
 )
 
 type Client struct {
@@ -52,19 +51,38 @@ func (c *Client) GetRepository(ctx context.Context, owner, repo string) (*domain
 			slog.String("op", operation),
 			slog.Any("error", err),
 		)
-		return nil, mapGRPCErrorToDomain(err)
+		return nil, utils.MapGRPCErrorToDomain(err)
 	}
 
 	return &domain.Repository{
-		Name:        resp.GetName(),
-		Description: resp.GetDescription(),
-		Stargazers:  int(resp.GetStargazers()),
-		Forks:       int(resp.GetForks()),
-		CreatedAt:   resp.GetCreatedAt().AsTime(),
-		HTMLURL:     resp.GetHtmlUrl(),
+		FullName:    resp.Info.GetFullName(),
+		Description: resp.Info.GetDescription(),
+		Stargazers:  int(resp.Info.GetStargazers()),
+		Forks:       int(resp.Info.GetForks()),
+		CreatedAt:   resp.Info.GetCreatedAt().AsTime(),
+		HTMLURL:     resp.Info.GetHtmlUrl(),
 	}, nil
 }
 
+func (c *Client) GetSubscriptionsInfo(ctx context.Context) ([]domain.Repository, error) {
+	resp, err := c.client.GetSubscriptionsInfo(ctx, &processorpb.GetSubscriptionsInfoRequest{})
+	if err != nil {
+		return nil, utils.MapGRPCErrorToDomain(err)
+	}
+
+	results := make([]domain.Repository, 0, len(resp.GetRepositories()))
+	for _, r := range resp.GetRepositories() {
+		results = append(results, domain.Repository{
+			FullName:    r.GetFullName(),
+			Description: r.GetDescription(),
+			Stargazers:  int(r.GetStargazers()),
+			Forks:       int(r.GetForks()),
+			CreatedAt:   r.GetCreatedAt().AsTime(),
+			HTMLURL:     r.GetHtmlUrl(),
+		})
+	}
+	return results, nil
+}
 func (c *Client) Ping(ctx context.Context) domain.PingStatus {
 	_, err := c.client.Ping(ctx, &processorpb.PingRequest{})
 	if err != nil {
@@ -77,44 +95,4 @@ func (c *Client) Ping(ctx context.Context) domain.PingStatus {
 
 func (c *Client) Close() error {
 	return c.conn.Close()
-}
-
-func mapGRPCErrorToDomain(err error) error {
-	if err == nil {
-		return nil
-	}
-
-	st, ok := status.FromError(err)
-	if !ok {
-		return fmt.Errorf("%w: %v", domain.ErrInternal, err)
-	}
-
-	switch st.Code() {
-	case codes.NotFound:
-		return fmt.Errorf("%w: %s", domain.ErrNotFound, st.Message())
-
-	case codes.PermissionDenied:
-		return fmt.Errorf("%w: %s", domain.ErrForbidden, st.Message())
-
-	case codes.Unauthenticated:
-		return fmt.Errorf("%w: %s", domain.ErrUnauthorized, st.Message())
-
-	case codes.ResourceExhausted:
-		return fmt.Errorf("%w: %s", domain.ErrRateLimit, st.Message())
-
-	case codes.InvalidArgument:
-		return fmt.Errorf("%w: %s", domain.ErrInvalidInput, st.Message())
-
-	case codes.DeadlineExceeded:
-		return fmt.Errorf("%w: request to collector service timed out", domain.ErrTimeout)
-
-	case codes.Unavailable:
-		return fmt.Errorf("%w: collector service is unavailable", domain.ErrInternal)
-
-	case codes.Internal:
-		return fmt.Errorf("%w: collector service internal error: %s", domain.ErrInternal, st.Message())
-
-	default:
-		return fmt.Errorf("%w: unexpected error from collector: %s", domain.ErrInternal, st.Message())
-	}
 }

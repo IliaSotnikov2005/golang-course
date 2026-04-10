@@ -21,7 +21,7 @@ func (h *Handler) Router() chi.Router {
 
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins: []string{"*"},
-		AllowedMethods: []string{http.MethodGet},
+		AllowedMethods: []string{http.MethodGet, http.MethodPost, http.MethodDelete, http.MethodOptions},
 		AllowedHeaders: []string{"Accept"},
 		MaxAge:         300,
 	}))
@@ -30,6 +30,16 @@ func (h *Handler) Router() chi.Router {
 
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Get("/repositories/info", h.getRepository)
+
+		r.Route("/subscriptions", func(r chi.Router) {
+			r.Get("/", h.listSubscriptions)
+			r.Get("/info", h.getSubscriptionsInfo)
+
+			r.Route("/{owner}/{repo}", func(r chi.Router) {
+				r.Post("/", h.subscribe)
+				r.Delete("/", h.unsubscribe)
+			})
+		})
 	})
 
 	r.Route("/api", func(r chi.Router) {

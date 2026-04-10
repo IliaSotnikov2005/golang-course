@@ -35,9 +35,20 @@ func New(
 	}
 
 	getRepoUC := usecase.NewGetRepositoryUseCase(processorClient)
+	subscribeUC := usecase.NewSubscribeUseCase(subscriberClient)
+	unsubscribeUC := usecase.NewUnsubscribeUseCase(subscriberClient)
+	listUC := usecase.NewListSubscriptionsUseCase(subscriberClient)
+	subscriptionsInfoUC := usecase.NewGetSubscriptionsInfoUseCase(processorClient)
 	pingUC := usecase.NewPingUseCase(processorClient, subscriberClient)
 
-	handler := v1.NewHandler(log, getRepoUC, pingUC)
+	handler := v1.NewHandler(
+		log,
+		getRepoUC,
+		subscribeUC,
+		unsubscribeUC,
+		listUC,
+		subscriptionsInfoUC,
+		pingUC)
 	router := handler.Router()
 
 	srv := &http.Server{

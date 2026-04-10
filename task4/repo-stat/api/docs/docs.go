@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/health": {
+        "/ping": {
             "get": {
                 "description": "Returns API status and availability of dependent microservices (Collector, Subscriber)",
                 "produces": [
@@ -41,9 +41,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/repos/info": {
+        "/v1/repositories/info": {
             "get": {
-                "description": "Возвращает данные о звездах, форках и описании репозитория по его URL",
+                "description": "Returns data about stars, forks, and the repository description by its URL",
                 "consumes": [
                     "application/json"
                 ],
@@ -53,7 +53,7 @@ const docTemplate = `{
                 "tags": [
                     "repositories"
                 ],
-                "summary": "Получить информацию о репозитории",
+                "summary": "Gets information about GitHub repository",
                 "parameters": [
                     {
                         "type": "string",
@@ -86,6 +86,122 @@ const docTemplate = `{
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/subscriptions": {
+            "get": {
+                "tags": [
+                    "subscriptions"
+                ],
+                "summary": "List all subscriptions",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/v1.SubscriptionResponse"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/subscriptions/info": {
+            "get": {
+                "description": "Triggers a chain API -\u003e Processor -\u003e Collector (which fetches list from Subscriber)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "subscriptions"
+                ],
+                "summary": "Get detailed info about all subscribed repositories",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/v1.RepositoryResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/subscriptions/{owner}/{repo}": {
+            "post": {
+                "tags": [
+                    "subscriptions"
+                ],
+                "summary": "Subscribe to a repository",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Repository Owner",
+                        "name": "owner",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Repository Name",
+                        "name": "repo",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "subscriptions"
+                ],
+                "summary": "Unsubscribe from a repository",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Repository Owner",
+                        "name": "owner",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Repository Name",
+                        "name": "repo",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
@@ -132,19 +248,19 @@ const docTemplate = `{
                     "type": "string",
                     "example": "The Go programming language"
                 },
-                "forks_count": {
+                "forks": {
                     "type": "integer",
                     "example": 12345
+                },
+                "full_name": {
+                    "type": "string",
+                    "example": "go"
                 },
                 "html_url": {
                     "type": "string",
                     "example": "https://github.com/golang/go"
                 },
-                "name": {
-                    "type": "string",
-                    "example": "go"
-                },
-                "stargazers_count": {
+                "stars": {
                     "type": "integer",
                     "example": 123456
                 }
@@ -160,6 +276,19 @@ const docTemplate = `{
                 "status": {
                     "type": "string",
                     "example": "up"
+                }
+            }
+        },
+        "v1.SubscriptionResponse": {
+            "type": "object",
+            "properties": {
+                "owner": {
+                    "type": "string",
+                    "example": "google"
+                },
+                "repo": {
+                    "type": "string",
+                    "example": "go"
                 }
             }
         }
