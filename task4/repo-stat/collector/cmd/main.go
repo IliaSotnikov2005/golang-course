@@ -16,7 +16,7 @@ func main() {
 
 	log := must.Do(logger.MakeLogger(cfg.LogLevel))
 
-	application := app.New(log, cfg.GRPC, cfg.Github)
+	application := app.New(log, cfg.GRPC, cfg.Github, cfg.Subscriber)
 
 	application.MustRun()
 

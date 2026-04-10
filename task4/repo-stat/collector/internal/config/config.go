@@ -10,9 +10,14 @@ import (
 )
 
 type Config struct {
-	LogLevel string       `yaml:"log-level" env-default:"INFO"`
-	GRPC     GRPCServer   `yaml:"grpc"`
-	Github   GithubConfig `yaml:"github"`
+	LogLevel   string           `yaml:"log-level" env-default:"INFO"`
+	GRPC       GRPCServer       `yaml:"grpc"`
+	Github     GithubConfig     `yaml:"github"`
+	Subscriber SubscriberConfig `yaml:"subscriber"`
+}
+
+type SubscriberConfig struct {
+	Address string `yaml:"address"`
 }
 
 type GRPCServer struct {

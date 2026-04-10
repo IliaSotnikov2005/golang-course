@@ -12,20 +12,23 @@ import (
 
 type Handler struct {
 	collector.UnimplementedCollectorServiceServer
-	log                  *slog.Logger
-	getRepositoryUseCase *usecase.GetRepositoryUseCase
-	pingUseCase          *usecase.PingUseCase
+	log                         *slog.Logger
+	getRepositoryUseCase        *usecase.GetRepositoryUseCase
+	getSubscriptionsInfoUseCase *usecase.GetSubscriptionsInfoUseCase
+	pingUseCase                 *usecase.PingUseCase
 }
 
 func NewHandler(
 	log *slog.Logger,
 	getRepositoryUseCase *usecase.GetRepositoryUseCase,
+	getSubscriptionsInfoUseCase *usecase.GetSubscriptionsInfoUseCase,
 	pingUseCase *usecase.PingUseCase,
 ) *Handler {
 	return &Handler{
-		log:                  log,
-		getRepositoryUseCase: getRepositoryUseCase,
-		pingUseCase:          pingUseCase,
+		log:                         log,
+		getRepositoryUseCase:        getRepositoryUseCase,
+		getSubscriptionsInfoUseCase: getSubscriptionsInfoUseCase,
+		pingUseCase:                 pingUseCase,
 	}
 }
 
@@ -33,15 +36,43 @@ func (h *Handler) GetRepository(ctx context.Context, req *collector.GetRepositor
 	repo, err := h.getRepositoryUseCase.Execute(ctx, req.GetOwner(), req.GetRepo())
 	if err != nil {
 		h.log.Error("usecase error", slog.String("error", err.Error()))
+		return nil, err
 	}
 
 	return &collector.GetRepositoryResponse{
-		FullName:    repo.FullName,
-		Description: repo.Description,
-		Stargazers:  int32(repo.Stargazers),
-		Forks:       int32(repo.Forks),
-		CreatedAt:   timestamppb.New(repo.CreatedAt),
-		HtmlUrl:     repo.HTMLURL,
+		Info: &collector.RepositoryInfo{
+			FullName:    repo.FullName,
+			Description: repo.Description,
+			Stargazers:  int32(repo.Stargazers),
+			Forks:       int32(repo.Forks),
+			CreatedAt:   timestamppb.New(repo.CreatedAt),
+			HtmlUrl:     repo.HTMLURL,
+		}}, nil
+}
+
+func (h *Handler) GetSubscriptionsInfo(ctx context.Context, req *collector.GetSubscriptionsInfoRequest) (*collector.GetSubscriptionsInfoResponse, error) {
+	h.log.Info("grpc: GetSubscriptionsInfo request")
+
+	repos, err := h.getSubscriptionsInfoUseCase.Execute(ctx)
+	if err != nil {
+		h.log.Error("failed to get subscriptions info", slog.String("error", err.Error()))
+		return nil, err
+	}
+
+	pbRepos := make([]*collector.RepositoryInfo, 0, len(repos))
+	for _, r := range repos {
+		pbRepos = append(pbRepos, &collector.RepositoryInfo{
+			FullName:    r.FullName,
+			Description: r.Description,
+			Stargazers:  int32(r.Stargazers),
+			Forks:       int32(r.Forks),
+			CreatedAt:   timestamppb.New(r.CreatedAt),
+			HtmlUrl:     r.HTMLURL,
+		})
+	}
+
+	return &collector.GetSubscriptionsInfoResponse{
+		Repositories: pbRepos,
 	}, nil
 }
 

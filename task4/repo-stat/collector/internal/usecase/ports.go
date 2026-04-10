@@ -9,3 +9,7 @@ import (
 type GitHubClient interface {
 	GetRepository(ctx context.Context, owner, repo string) (*domain.Repository, error)
 }
+
+type SubscriberClient interface {
+	GetSubscriptions(ctx context.Context) ([]domain.Subscription, error)
+}

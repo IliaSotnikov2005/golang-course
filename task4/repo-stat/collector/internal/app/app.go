@@ -7,24 +7,29 @@ import (
 	"net/http"
 
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/collector/internal/adapter/github"
+	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/collector/internal/adapter/subscriber"
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/collector/internal/config"
 	grpccontroller "github.com/IliaSotnikov2005/golang-course/task4/repo-stat/collector/internal/controller/grpc"
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/collector/internal/usecase"
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/platform/must"
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/proto/collector"
+	subscriberpb "github.com/IliaSotnikov2005/golang-course/task4/repo-stat/proto/subscriber"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type App struct {
-	log        *slog.Logger
-	gRPCServer *grpc.Server
-	port       string
+	log            *slog.Logger
+	gRPCServer     *grpc.Server
+	subscriberConn *grpc.ClientConn
+	port           string
 }
 
 func New(
 	log *slog.Logger,
 	cfgGRPC config.GRPCServer,
 	cfgGithub config.GithubConfig,
+	cfgSubscriber config.SubscriberConfig,
 ) *App {
 
 	httpClient := http.Client{
@@ -41,7 +46,18 @@ func New(
 	getRepoUseCase := usecase.NewGetRepositoryUseCase(githubClient)
 	pingUseCase := usecase.NewPingUseCase()
 
-	grpcHandler := grpccontroller.NewHandler(log, getRepoUseCase, pingUseCase)
+	conn, err := grpc.NewClient(cfgSubscriber.Address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		panic(err)
+	}
+
+	subscriberRawClient := subscriberpb.NewSubscriberClient(conn)
+
+	subscriberAdapter := subscriber.NewClient(subscriberRawClient)
+
+	getSubscriptionsInfoUseCase := usecase.NewGetSubscriptionsInfoUseCase(subscriberAdapter, githubClient)
+
+	grpcHandler := grpccontroller.NewHandler(log, getRepoUseCase, getSubscriptionsInfoUseCase, pingUseCase)
 
 	gRPCServer := grpc.NewServer(
 		grpc.ConnectionTimeout(cfgGRPC.Timeout),
@@ -49,9 +65,10 @@ func New(
 	collector.RegisterCollectorServiceServer(gRPCServer, grpcHandler)
 
 	return &App{
-		log:        log,
-		gRPCServer: gRPCServer,
-		port:       cfgGRPC.Port,
+		log:            log,
+		gRPCServer:     gRPCServer,
+		port:           cfgGRPC.Port,
+		subscriberConn: conn,
 	}
 }
 
@@ -89,4 +106,8 @@ func (a *App) Stop() {
 	a.log.With(slog.String("operation", operation)).Info("stopping gRPC server", slog.String("port", a.port))
 
 	a.gRPCServer.GracefulStop()
+
+	if err := a.subscriberConn.Close(); err != nil {
+		a.log.Error("failed to close subscriber connection", slog.String("err", err.Error()))
+	}
 }
