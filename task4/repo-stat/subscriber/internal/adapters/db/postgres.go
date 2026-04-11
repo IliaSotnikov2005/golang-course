@@ -2,10 +2,12 @@ package db
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/subscriber/internal/db"
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/subscriber/internal/domain"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -28,13 +30,19 @@ func (r *PostgresRepository) Save(ctx context.Context, sub *domain.Subscription)
 	})
 
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return nil, domain.ErrSubscriptionAlreadyExists
+		}
+
 		return nil, err
 	}
 
 	return &domain.Subscription{
-		ID:    int(row.ID),
-		Owner: row.Owner,
-		Repo:  row.Repo,
+		ID:        int(row.ID),
+		Owner:     row.Owner,
+		Repo:      row.Repo,
+		CreatedAt: row.CreatedAt.Time,
 	}, nil
 
 }

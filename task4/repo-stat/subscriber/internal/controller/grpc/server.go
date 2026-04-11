@@ -2,6 +2,8 @@ package grpccontroller
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log/slog"
 
 	pb "github.com/IliaSotnikov2005/golang-course/task4/repo-stat/proto/subscriber"
@@ -35,11 +37,14 @@ func (s *Server) Subscribe(ctx context.Context, req *pb.SubscribeRequest) (*pb.S
 
 	sub, err := s.subscribeUC.Execute(ctx, req.GetOwner(), req.GetRepo())
 	if err != nil {
-		switch err {
-		case domain.ErrRepositoryNotFound:
-			return nil, status.Error(codes.NotFound, err.Error())
-		case domain.ErrSubscriptionAlreadyExists:
-			return nil, status.Error(codes.AlreadyExists, err.Error())
+		s.log.Debug("debug subscribe error",
+			slog.String("type", fmt.Sprintf("%T", err)),
+			slog.String("value", err.Error()))
+		if errors.Is(err, domain.ErrRepositoryNotFound) {
+			return nil, status.Error(codes.NotFound, "repository not found on github")
+		}
+		if errors.Is(err, domain.ErrSubscriptionAlreadyExists) {
+			return nil, status.Error(codes.AlreadyExists, "this repository is already subscribed")
 		}
 
 		s.log.Error("subscribe execution failed", slog.String("err", err.Error()))

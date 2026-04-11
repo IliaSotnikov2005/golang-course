@@ -13,6 +13,9 @@ func (h *Handler) handleError(w http.ResponseWriter, err error) {
 	var message string
 
 	switch {
+	case errors.Is(err, domain.ErrSubscriptionAlreadyExists):
+		statusCode = http.StatusConflict
+		message = "You are already subscribed to this repository"
 	case errors.Is(err, domain.ErrNotFound), errors.Is(err, domain.ErrMovedPermanently):
 		statusCode = http.StatusNotFound
 		message = "Repository not found"

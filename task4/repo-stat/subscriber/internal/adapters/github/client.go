@@ -56,6 +56,11 @@ func (c *Client) Exists(ctx context.Context, owner, repo string) (bool, error) {
 		return true, nil
 	case http.StatusNotFound:
 		return false, nil
+	case http.StatusForbidden:
+		if response.Header.Get("X-RateLimit-Remaining") == "0" {
+			return false, fmt.Errorf("github rate limit exceeded")
+		}
+		return false, fmt.Errorf("access forbidden (status 403)")
 	default:
 		return false, fmt.Errorf("unexpected status code: %d", response.StatusCode)
 	}

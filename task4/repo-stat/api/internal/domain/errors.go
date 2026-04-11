@@ -18,4 +18,6 @@ var (
 	ErrTimeout = errors.New("request timeout")
 
 	ErrInternal = errors.New("internal error")
+
+	ErrSubscriptionAlreadyExists = errors.New("subscription is already exists")
 )

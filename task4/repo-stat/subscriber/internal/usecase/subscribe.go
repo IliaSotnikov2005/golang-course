@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/subscriber/internal/domain"
 )
@@ -25,7 +24,7 @@ func (uc *SubscribeUseCase) Execute(ctx context.Context, owner, repo string) (*d
 		return nil, err
 	}
 	if !exists {
-		return nil, fmt.Errorf("repository %s/%s does not exist", owner, repo)
+		return nil, domain.ErrRepositoryNotFound
 	}
 
 	sub := &domain.Subscription{

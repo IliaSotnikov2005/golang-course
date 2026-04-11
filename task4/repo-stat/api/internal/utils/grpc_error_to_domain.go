@@ -19,6 +19,8 @@ func MapGRPCErrorToDomain(err error) error {
 	}
 
 	switch st.Code() {
+	case codes.AlreadyExists:
+		return fmt.Errorf("%w: %s", domain.ErrSubscriptionAlreadyExists, st.Message())
 	case codes.NotFound:
 		return fmt.Errorf("%w: %s", domain.ErrNotFound, st.Message())
 
