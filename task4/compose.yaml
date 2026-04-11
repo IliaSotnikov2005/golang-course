@@ -1,4 +1,22 @@
 services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: subscriber_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    network_mode: host
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d subscriber_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   collector:
     build:
       context: ./repo-stat
@@ -43,7 +61,11 @@ services:
       - "8083:8083"
     volumes:
       - ./repo-stat/subscriber/config/config.yaml:/config/config.yaml
+      - ./repo-stat/subscriber/migrations:/root/migrations
     network_mode: host
+    depends_on:
+      postgres:
+        condition: service_healthy
   tests:
     image: tests:latest
     build:
@@ -54,3 +76,6 @@ services:
       - api
     network_mode: host
     # entrypoint: ["true"]
+    
+volumes:
+  postgres_data:
