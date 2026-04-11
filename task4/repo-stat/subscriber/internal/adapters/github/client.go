@@ -3,6 +3,7 @@ package github
 import (
 	"context"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -30,7 +31,7 @@ func (c *Client) Exists(ctx context.Context, owner, repo string) (bool, error) {
 		return false, err
 	}
 
-	request, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	request, err := http.NewRequestWithContext(ctx, http.MethodHead, url, nil)
 	if err != nil {
 		return false, err
 	}
@@ -44,8 +45,9 @@ func (c *Client) Exists(ctx context.Context, owner, repo string) (bool, error) {
 	}
 
 	defer func() {
+		io.Copy(io.Discard, response.Body)
 		if err := response.Body.Close(); err != nil {
-			c.log.Warn("failed to close response body: %v\n", slog.String("error", err.Error()))
+			c.log.Warn("failed to close response body", slog.String("error", err.Error()))
 		}
 	}()
 
