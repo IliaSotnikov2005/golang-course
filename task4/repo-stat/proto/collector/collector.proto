@@ -22,12 +22,14 @@ service CollectorService {
   // - INTERNAL: An unexpected server-side error occurred.
   rpc GetRepository(GetRepositoryRequest) returns (GetRepositoryResponse);
 
+  // Get SubscriptionsInfo retrieves information about all subscribed repositories.
   rpc GetSubscriptionsInfo(GetSubscriptionsInfoRequest) returns (GetSubscriptionsInfoResponse);
   
   // Ping checks whether the service is available.
   rpc Ping(PingRequest) returns (PingResponse);
 }
 
+// RepositoryInfo represents information about a GitHub repository.
 message RepositoryInfo {
   string full_name = 1;
   string description = 2;
@@ -48,9 +50,11 @@ message GetRepositoryResponse {
   RepositoryInfo info = 1;
 }
 
+// GetSubscriptionsInfoRequest represents a request to retrieve information about all subscribed repositories.
 message GetSubscriptionsInfoRequest {
 }
 
+// GetSubscriptionsInfoResponse contains a list of RepositoryInfo for all subscribed repositories.
 message GetSubscriptionsInfoResponse {
   repeated RepositoryInfo repositories = 1;
 }
