@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/health": {
+        "/ping": {
             "get": {
                 "description": "Returns API status and availability of dependent microservices (Collector, Subscriber)",
                 "produces": [
@@ -41,9 +41,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/repos/info": {
+        "/v1/repositories/info": {
             "get": {
-                "description": "Возвращает данные о звездах, форках и описании репозитория по его URL",
+                "description": "Returns data about stars, forks, and the repository description by its URL",
                 "consumes": [
                     "application/json"
                 ],
@@ -53,7 +53,7 @@ const docTemplate = `{
                 "tags": [
                     "repositories"
                 ],
-                "summary": "Получить информацию о репозитории",
+                "summary": "Gets information about GitHub repository",
                 "parameters": [
                     {
                         "type": "string",
@@ -96,10 +96,6 @@ const docTemplate = `{
         "v1.ErrorResponse": {
             "type": "object",
             "properties": {
-                "error": {
-                    "type": "string",
-                    "example": "Not Found"
-                },
                 "message": {
                     "type": "string",
                     "example": "Repository not found"
@@ -132,19 +128,19 @@ const docTemplate = `{
                     "type": "string",
                     "example": "The Go programming language"
                 },
-                "forks_count": {
+                "forks": {
                     "type": "integer",
                     "example": 12345
+                },
+                "full_name": {
+                    "type": "string",
+                    "example": "go"
                 },
                 "html_url": {
                     "type": "string",
                     "example": "https://github.com/golang/go"
                 },
-                "name": {
-                    "type": "string",
-                    "example": "go"
-                },
-                "stargazers_count": {
+                "stars": {
                     "type": "integer",
                     "example": 123456
                 }

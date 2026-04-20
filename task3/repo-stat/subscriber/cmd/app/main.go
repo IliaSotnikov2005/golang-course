@@ -9,7 +9,6 @@ import (
 
 	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/platform/grpcserver"
 	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/platform/logger"
-	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/platform/must"
 	subscriberpb "github.com/IliaSotnikov2005/golang-course/task3/repo-stat/proto/subscriber"
 	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/subscriber/config"
 	grpccontroller "github.com/IliaSotnikov2005/golang-course/task3/repo-stat/subscriber/internal/controller/grpc"
@@ -23,7 +22,12 @@ func run(ctx context.Context) error {
 
 	cfg := config.MustLoad(configPath)
 
-	log := must.Do(logger.MakeLogger(cfg.Logger.LogLevel))
+	log, err := logger.MakeLogger(cfg.Logger.LogLevel)
+	if err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, "logger init error:", err)
+		return err
+	}
+
 	log.Info("starting subscriber server...")
 	log.Debug("debug messages are enabled")
 

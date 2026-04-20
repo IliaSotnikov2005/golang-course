@@ -7,6 +7,8 @@ import (
 	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/processor/internal/domain"
 	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/processor/internal/usecase"
 	processorpb "github.com/IliaSotnikov2005/golang-course/task3/repo-stat/proto/processor"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -30,13 +32,11 @@ func NewHandler(
 }
 
 func (h *Handler) GetRepository(ctx context.Context, req *processorpb.GetRepositoryRequest) (*processorpb.GetRepositoryResponse, error) {
-	const operation = "grpccontroller.Handler.GetRepository"
-	log := h.log.With(slog.String("operation", operation))
-	log.Debug("grpc: GetRepository request", "owner", req.GetOwner(), "repo", req.GetRepo())
-
+	h.log.Debug("grpc: GetRepository request", "owner", req.GetOwner(), "repo", req.GetRepo())
 	repo, err := h.getRepositoryUseCase.Execute(ctx, req.GetOwner(), req.GetRepo())
 	if err != nil {
 		h.log.Error("usecase error", slog.String("error", err.Error()))
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &processorpb.GetRepositoryResponse{
@@ -50,9 +50,7 @@ func (h *Handler) GetRepository(ctx context.Context, req *processorpb.GetReposit
 }
 
 func (h *Handler) Ping(ctx context.Context, req *processorpb.PingRequest) (*processorpb.PingResponse, error) {
-	const operation = "grpccontroller.Handler.Ping"
-	log := h.log.With(slog.String("operation", operation))
-	log.Debug("grpc: Ping request")
+	h.log.Debug("grpc: Ping request")
 
 	status := h.pingUseCase.Execute(ctx)
 
