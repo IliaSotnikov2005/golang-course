@@ -14,14 +14,15 @@ down-volumes: check-container-runtime ## Stop and remove containers and all volu
 	$(CONTAINER_RUNTIME) compose down -v
 
 run-tests: ## Run tests container
-	$(CONTAINER_RUNTIME) run --rm --network=host tests:latest
+	$(CONTAINER_RUNTIME) compose run --rm tests || (echo "Tests failed!"; exit 1)
+	@echo "Tests passed successfully!"
 
 test: check-container-runtime ## Up containers and run tests
 	@$(MAKE) down-volumes
 	@$(MAKE) up
 	@echo "Waiting for cluster to start" \
 		&& for i in $$(seq 15); do \
-			curl -sf http://localhost:28080 >/dev/null 2>&1 && break \
+			curl -sf http://localhost:8080 >/dev/null 2>&1 && break \
 				|| true; \
 			sleep 1; \
 		done || { echo "Error: timeout"; exit 1; }
