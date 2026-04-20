@@ -37,10 +37,6 @@ func NewHandler(l *slog.Logger, g *usecase.GetRepositoryUseCase, p *usecase.Ping
 // @Router       /v1/repositories/info [get]
 func (h *Handler) getRepository(w http.ResponseWriter, r *http.Request) {
 	rawURL := strings.TrimSpace(r.URL.Query().Get("url"))
-	if rawURL == "" {
-		h.respondJSON(w, http.StatusBadRequest, ErrorResponse{Message: "url parameter is required"})
-		return
-	}
 
 	repository, err := h.getRepositoryUseCase.Execute(r.Context(), rawURL)
 	if err != nil {
