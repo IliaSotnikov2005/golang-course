@@ -38,12 +38,12 @@ func NewHandler(l *slog.Logger, g *usecase.GetRepositoryUseCase, p *usecase.Ping
 func (h *Handler) getRepository(w http.ResponseWriter, r *http.Request) {
 	url := r.URL.Query().Get("url")
 	if url == "" {
-		h.respondJSON(w, http.StatusBadRequest, ErrorResponse{Error: "url parameter is required"})
+		h.respondJSON(w, http.StatusBadRequest, ErrorResponse{Message: "url parameter is required"})
 		return
 	}
 
 	if !strings.HasPrefix(url, "http") {
-		h.respondJSON(w, http.StatusBadRequest, ErrorResponse{Error: "invalid url format"})
+		h.respondJSON(w, http.StatusBadRequest, ErrorResponse{Message: "invalid url format"})
 		return
 	}
 
