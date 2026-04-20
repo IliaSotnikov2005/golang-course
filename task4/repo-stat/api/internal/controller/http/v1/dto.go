@@ -31,6 +31,5 @@ type ServiceStatus struct {
 
 // ErrorResponse represents a error response
 type ErrorResponse struct {
-	Error   string `json:"error" example:"Not Found"`
-	Message string `json:"message" example:"Repository not found"`
+	Error string `json:"error" example:"Repository not found"`
 }

@@ -2,11 +2,14 @@ package grpccontroller
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/collector/internal/domain"
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/collector/internal/usecase"
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/proto/collector"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -36,7 +39,14 @@ func (h *Handler) GetRepository(ctx context.Context, req *collector.GetRepositor
 	repo, err := h.getRepositoryUseCase.Execute(ctx, req.GetOwner(), req.GetRepo())
 	if err != nil {
 		h.log.Error("usecase error", slog.String("error", err.Error()))
-		return nil, err
+		switch {
+		case errors.Is(err, domain.ErrNotFound):
+			return nil, status.Error(codes.NotFound, err.Error())
+		case errors.Is(err, domain.ErrInvalidInput):
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		default:
+			return nil, status.Error(codes.Internal, err.Error())
+		}
 	}
 
 	return &collector.GetRepositoryResponse{

@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"net"
 
-	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/platform/must"
+	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/platform/interceptors"
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/processor/internal/adapter/collector"
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/processor/internal/config"
 	grpccontroller "github.com/IliaSotnikov2005/golang-course/task4/repo-stat/processor/internal/controller/grpc"
@@ -43,7 +43,7 @@ func New(
 
 	gRPCHandler := grpccontroller.NewHandler(log, getRepositoryUseCase, getSubscribtionsInfoUseCase, pingUseCase)
 
-	gRPCServer := grpc.NewServer(grpc.ConnectionTimeout(cfgGRPC.Timeout))
+	gRPCServer := grpc.NewServer(grpc.ConnectionTimeout(cfgGRPC.Timeout), grpc.ChainUnaryInterceptor(interceptors.LoggingInterceptor(log)))
 	processor.RegisterProcessorServiceServer(gRPCServer, gRPCHandler)
 
 	return &App{
@@ -56,7 +56,9 @@ func New(
 
 func (a *App) MustRun() {
 	go func() {
-		must.NotError(a.Run())
+		if err := a.Run(); err != nil {
+			panic(err)
+		}
 	}()
 }
 

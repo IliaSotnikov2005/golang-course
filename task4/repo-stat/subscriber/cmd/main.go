@@ -9,19 +9,31 @@ import (
 	"time"
 
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/platform/logger"
-	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/platform/must"
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/subscriber/internal/app"
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/subscriber/internal/config"
 )
 
 func main() {
-	cfg := must.Do(config.Load())
-	log := must.Do(logger.MakeLogger(cfg.LogLevel))
+	cfg, err := config.Load()
+	if err != nil {
+		_, _ = os.Stderr.WriteString("config load error: " + err.Error() + "\n")
+		os.Exit(1)
+	}
+
+	log, err := logger.MakeLogger(cfg.LogLevel)
+	if err != nil {
+		_, _ = os.Stderr.WriteString("logger init error: " + err.Error() + "\n")
+		os.Exit(1)
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	application := must.Do(app.New(ctx, log, cfg))
+	application, err := app.New(ctx, log, cfg)
+	if err != nil {
+		_, _ = os.Stderr.WriteString("application init error: " + err.Error() + "\n")
+		os.Exit(1)
+	}
 
 	errChan := make(chan error, 1)
 

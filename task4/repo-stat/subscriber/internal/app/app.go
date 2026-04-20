@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/platform/interceptors"
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/subscriber/internal/adapters/db"
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/subscriber/internal/adapters/github"
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/subscriber/internal/config"
@@ -64,7 +65,7 @@ func New(
 
 	grpcHandler := grpccontroller.NewServer(log, subscribeUC, unsubscribeUC, listUC, pingUC)
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(grpc.ConnectionTimeout(cfg.GRPC.Timeout), grpc.ChainUnaryInterceptor(interceptors.LoggingInterceptor(log)))
 	pb.RegisterSubscriberServer(grpcServer, grpcHandler)
 
 	return &App{

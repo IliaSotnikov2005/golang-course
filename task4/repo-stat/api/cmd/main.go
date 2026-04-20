@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -8,7 +9,6 @@ import (
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/api/app"
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/api/internal/config"
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/platform/logger"
-	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/platform/must"
 )
 
 // @title           Repo Stat API
@@ -17,11 +17,24 @@ import (
 // @host            localhost:8080
 // @BasePath        /api
 func main() {
-	cfg := must.Do(config.Load())
+	cfg, err := config.Load()
+	if err != nil {
+		_, _ = os.Stderr.WriteString("config load error: " + err.Error() + "\n")
+		os.Exit(1)
+	}
 
-	log := must.Do(logger.MakeLogger(cfg.LogLevel))
+	log, err := logger.MakeLogger(cfg.LogLevel)
+	if err != nil {
+		_, _ = os.Stderr.WriteString("logger init error: " + err.Error() + "\n")
+		os.Exit(1)
+	}
 
-	application := must.Do(app.New(log, cfg))
+	application, err := app.New(log, cfg)
+	if err != nil {
+		log.Error("app init failed", slog.Any("error", err))
+		os.Exit(1)
+	}
+
 	application.MustRun()
 
 	log.Info("application started")

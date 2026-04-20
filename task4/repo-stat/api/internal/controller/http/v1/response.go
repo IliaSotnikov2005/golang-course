@@ -10,45 +10,39 @@ import (
 
 func (h *Handler) handleError(w http.ResponseWriter, err error) {
 	var statusCode int
-	var message string
+	var errorMessage string
 
 	switch {
-	case errors.Is(err, domain.ErrSubscriptionAlreadyExists):
-		statusCode = http.StatusConflict
-		message = "You are already subscribed to this repository"
-	case errors.Is(err, domain.ErrNotFound), errors.Is(err, domain.ErrMovedPermanently):
+	case errors.Is(err, domain.ErrNotFound):
 		statusCode = http.StatusNotFound
-		message = "Repository not found"
-
+		errorMessage = http.StatusText(http.StatusNotFound)
+	case errors.Is(err, domain.ErrMovedPermanently):
+		statusCode = http.StatusMovedPermanently
+		errorMessage = http.StatusText(http.StatusMovedPermanently)
 	case errors.Is(err, domain.ErrInvalidInput):
 		statusCode = http.StatusBadRequest
-		message = err.Error()
-
+		errorMessage = err.Error()
 	case errors.Is(err, domain.ErrForbidden):
 		statusCode = http.StatusForbidden
-		message = "Access forbidden"
+		errorMessage = http.StatusText(http.StatusForbidden)
 
 	case errors.Is(err, domain.ErrUnauthorized):
 		statusCode = http.StatusUnauthorized
-		message = "Authentication required"
+		errorMessage = http.StatusText(http.StatusUnauthorized)
 
 	case errors.Is(err, domain.ErrRateLimit):
 		statusCode = http.StatusTooManyRequests
-		message = "Rate limit exceeded, please try again later"
+		errorMessage = http.StatusText(http.StatusTooManyRequests)
 
 	case errors.Is(err, domain.ErrTimeout):
 		statusCode = http.StatusGatewayTimeout
-		message = "Request timeout"
-
+		errorMessage = http.StatusText(http.StatusGatewayTimeout)
 	default:
 		statusCode = http.StatusInternalServerError
-		message = "Internal server error"
+		errorMessage = http.StatusText(http.StatusInternalServerError)
 	}
 
-	h.respondJSON(w, statusCode, ErrorResponse{
-		Error:   http.StatusText(statusCode),
-		Message: message,
-	})
+	h.respondJSON(w, statusCode, ErrorResponse{Error: errorMessage})
 }
 
 func (h *Handler) respondJSON(w http.ResponseWriter, status int, data any) {

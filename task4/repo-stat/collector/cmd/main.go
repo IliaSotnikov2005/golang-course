@@ -8,13 +8,20 @@ import (
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/collector/internal/app"
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/collector/internal/config"
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/platform/logger"
-	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/platform/must"
 )
 
 func main() {
-	cfg := must.Do(config.Load())
+	cfg, err := config.Load()
+	if err != nil {
+		_, _ = os.Stderr.WriteString("config load error: " + err.Error() + "\n")
+		os.Exit(1)
+	}
 
-	log := must.Do(logger.MakeLogger(cfg.LogLevel))
+	log, err := logger.MakeLogger(cfg.LogLevel)
+	if err != nil {
+		_, _ = os.Stderr.WriteString("logger init error: " + err.Error() + "\n")
+		os.Exit(1)
+	}
 
 	application := app.New(log, cfg.GRPC, cfg.Github, cfg.Subscriber)
 

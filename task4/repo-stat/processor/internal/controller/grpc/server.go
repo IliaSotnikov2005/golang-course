@@ -7,6 +7,8 @@ import (
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/processor/internal/domain"
 	"github.com/IliaSotnikov2005/golang-course/task4/repo-stat/processor/internal/usecase"
 	processorpb "github.com/IliaSotnikov2005/golang-course/task4/repo-stat/proto/processor"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -40,6 +42,7 @@ func (h *Handler) GetRepository(ctx context.Context, req *processorpb.GetReposit
 	repo, err := h.getRepositoryUseCase.Execute(ctx, req.GetOwner(), req.GetRepo())
 	if err != nil {
 		h.log.Error("usecase error", slog.String("error", err.Error()))
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &processorpb.GetRepositoryResponse{
