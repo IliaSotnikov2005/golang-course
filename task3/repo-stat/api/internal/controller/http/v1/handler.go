@@ -36,18 +36,13 @@ func NewHandler(l *slog.Logger, g *usecase.GetRepositoryUseCase, p *usecase.Ping
 // @Failure      500   {object}  v1.ErrorResponse
 // @Router       /v1/repositories/info [get]
 func (h *Handler) getRepository(w http.ResponseWriter, r *http.Request) {
-	url := r.URL.Query().Get("url")
-	if url == "" {
+	rawURL := strings.TrimSpace(r.URL.Query().Get("url"))
+	if rawURL == "" {
 		h.respondJSON(w, http.StatusBadRequest, ErrorResponse{Message: "url parameter is required"})
 		return
 	}
 
-	if !strings.HasPrefix(url, "http") {
-		h.respondJSON(w, http.StatusBadRequest, ErrorResponse{Message: "invalid url format"})
-		return
-	}
-
-	repository, err := h.getRepositoryUseCase.Execute(r.Context(), url)
+	repository, err := h.getRepositoryUseCase.Execute(r.Context(), rawURL)
 	if err != nil {
 		h.handleError(w, err)
 		return

@@ -10,7 +10,7 @@ import (
 	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/collector/internal/config"
 	grpccontroller "github.com/IliaSotnikov2005/golang-course/task3/repo-stat/collector/internal/controller/grpc"
 	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/collector/internal/usecase"
-	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/platform/must"
+	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/platform/interceptors"
 	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/proto/collector"
 	"google.golang.org/grpc"
 )
@@ -45,7 +45,7 @@ func New(
 
 	gRPCServer := grpc.NewServer(
 		grpc.ConnectionTimeout(cfgGRPC.Timeout),
-		grpc.ChainUnaryInterceptor(grpccontroller.LoggingInterceptor(log)))
+		grpc.ChainUnaryInterceptor(interceptors.LoggingInterceptor(log)))
 	collector.RegisterCollectorServiceServer(gRPCServer, grpcHandler)
 
 	return &App{
@@ -57,7 +57,9 @@ func New(
 
 func (a *App) MustRun() {
 	go func() {
-		must.NotError(a.Run())
+		if err := a.Run(); err != nil {
+			panic(err)
+		}
 	}()
 }
 

@@ -2,7 +2,8 @@ package usecase
 
 import (
 	"context"
-	"errors"
+	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/api/internal/domain"
@@ -21,16 +22,39 @@ func NewGetRepositoryUseCase(processor RepositoryProvider) *GetRepositoryUseCase
 func (uc *GetRepositoryUseCase) Execute(ctx context.Context, url string) (*domain.Repository, error) {
 	owner, repo, err := parseURL(url)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %s", domain.ErrInvalidInput, err.Error())
 	}
 
 	return uc.processor.GetRepository(ctx, owner, repo)
 }
 
 func parseURL(rawURL string) (owner, repo string, err error) {
-	parts := strings.Split(strings.TrimRight(rawURL, "/"), "/")
-	if len(parts) < 2 {
-		return "", "", errors.New("invalid github url")
+	input := strings.TrimSpace(strings.TrimRight(rawURL, "/"))
+
+	if !strings.Contains(input, "://") {
+		input = "https://" + input
 	}
-	return parts[len(parts)-2], parts[len(parts)-1], nil
+
+	u, err := url.Parse(input)
+	if err != nil {
+		return "", "", fmt.Errorf("invalid URL format")
+	}
+
+	path := u.Path
+	if u.Host != "" && !strings.Contains(u.Host, "github.com") {
+		return "", "", fmt.Errorf("only GitHub repositories are supported")
+	}
+
+	path = strings.TrimPrefix(path, "/")
+	parts := strings.Split(path, "/")
+
+	if len(parts) < 2 {
+		return "", "", fmt.Errorf("expected format: owner/repo")
+	}
+
+	if len(parts) > 2 {
+		return "", "", fmt.Errorf("invalid URL: too many path segments")
+	}
+
+	return parts[0], parts[1], nil
 }
