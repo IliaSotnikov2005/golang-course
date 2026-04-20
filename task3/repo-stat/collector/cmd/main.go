@@ -1,10 +1,10 @@
 package main
 
 import (
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
-	"log/slog"
 
 	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/collector/internal/app"
 	"github.com/IliaSotnikov2005/golang-course/task3/repo-stat/collector/internal/config"
