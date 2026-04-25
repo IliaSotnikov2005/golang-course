@@ -9,9 +9,10 @@ import (
 type SubscribeUseCase struct {
 	subscriptionRepository SubscriptionRepository
 	github                 GithubClient
+	eventSender            SubscriptionEventSender
 }
 
-func NewSubscribeUseCase(subscriptionRepository SubscriptionRepository, github GithubClient) *SubscribeUseCase {
+func NewSubscribeUseCase(subscriptionRepository SubscriptionRepository, github GithubClient, eventSender SubscriptionEventSender) *SubscribeUseCase {
 	return &SubscribeUseCase{
 		subscriptionRepository: subscriptionRepository,
 		github:                 github,
@@ -32,5 +33,11 @@ func (uc *SubscribeUseCase) Execute(ctx context.Context, owner, repo string) (*d
 		Repo:  repo,
 	}
 
-	return uc.subscriptionRepository.Save(ctx, sub)
+	sub, err = uc.subscriptionRepository.Save(ctx, sub)
+	if err != nil {
+		return nil, err
+	}
+
+	_ = uc.eventSender.NotifySubscribed(ctx, owner, repo)
+	return sub, nil
 }

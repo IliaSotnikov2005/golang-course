@@ -15,3 +15,7 @@ type SubscriptionRepository interface {
 type GithubClient interface {
 	Exists(ctx context.Context, owner, repo string) (bool, error)
 }
+
+type SubscriptionEventSender interface {
+	NotifySubscribed(ctx context.Context, owner, repo string) error
+}

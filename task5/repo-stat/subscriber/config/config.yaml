@@ -14,3 +14,6 @@ github:
   user-agent: "Subscriber-Service/1.0"
 
 database-dsn: "postgres://user:password@localhost:5432/subscriber_db?sslmode=disable"
+
+kafka:
+  

@@ -23,6 +23,7 @@ type Config struct {
 	GRPC        GRPCServer   `yaml:"grpc"`
 	Github      GithubConfig `yaml:"github"`
 	DatabaseDSN string       `yaml:"database-dsn" env-required:"true"`
+	Kafka       KafkaConfig  `yaml:"kafka"`
 }
 
 type GRPCServer struct {
@@ -36,6 +37,11 @@ type GithubConfig struct {
 	TimeoutSeconds int    `yaml:"timeout_seconds"`
 	Timeout        time.Duration
 	UserAgent      string `yaml:"user_agent" env-default:"Collector-Service/1.0"`
+}
+
+type KafkaConfig struct {
+	Brokers []string `yaml:"brokers"`
+	Topic   string   `yaml:"topic"`
 }
 
 func Load() (*Config, error) {
