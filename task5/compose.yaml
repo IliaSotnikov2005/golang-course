@@ -31,7 +31,7 @@ services:
         - postgres_processor_data:/var/lib/postgresql/data
       network_mode: host
       healthcheck:
-        test: ["CMD-SHELL", "pg_isready -U ${PROC_DB_USER:-proc_user} -d ${PROC_DB_NAME:-processor_db} -p 5433"]
+        test: ["CMD-SHELL", "pg_isready -U ${DB_USER_PROC:-user} -d ${DB_NAME_PROC:-processor_db} -p ${DP_PORT_PROC:-5433}"]
         interval: 5s
         timeout: 5s
         retries: 5
@@ -82,6 +82,7 @@ services:
       - "8082:8082"
     volumes:
       - ./repo-stat/processor/config/config.yaml:/config/config.yaml
+      - ./repo-stat/processor/migrations:/root/migrations
     depends_on:
       kafka:
         condition: service_healthy

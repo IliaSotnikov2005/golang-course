@@ -15,6 +15,8 @@ import (
 	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/processor/internal/usecase"
 	pb "github.com/IliaSotnikov2005/golang-course/task5/repo-stat/proto/processor"
 	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/twmb/franz-go/pkg/kgo"
 	"google.golang.org/grpc"
@@ -58,7 +60,6 @@ func New(
 	kClient, err := kgo.NewClient(
 		kgo.SeedBrokers(cfgKafka.Brokers...),
 		kgo.ConsumeTopics(cfgKafka.ResultsTopic),
-		kgo.ConsumerGroup("processor-group"),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("kafka client error: %w", err)
@@ -97,7 +98,7 @@ func (a *App) MustRun(ctx context.Context) {
 func (a *App) Run(ctx context.Context) error {
 	go a.resultConsumer.Start(ctx)
 
-	lis, err := net.Listen("tcp", ":"+a.port)
+	lis, err := net.Listen("tcp", a.port)
 	if err != nil {
 		return fmt.Errorf("Processor start error: %w", err)
 	}

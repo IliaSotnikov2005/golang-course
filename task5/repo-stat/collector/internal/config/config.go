@@ -29,8 +29,8 @@ type GithubConfig struct {
 
 type KafkaConfig struct {
 	Brokers       []string `yaml:"brokers"`
-	RequestTopic  string   `yaml:"request_topic"`
-	ResponseTopic string   `yaml:"response_topic"`
+	RequestTopic  string   `yaml:"requests_topic"`
+	ResponseTopic string   `yaml:"results_topic"`
 	GroupID       string   `yaml:"group_id"`
 }
 

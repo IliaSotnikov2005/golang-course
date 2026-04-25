@@ -1,3 +1,5 @@
+#file:repo-stat взаимодействие между #file:processor и #file:collector должно быть через kafka. Но запрос по /v1/subscriptions/info всегда возвращает "error": "Data is being collected. Please try again in a few seconds."
+
 # Repo Stat Service
 
 A GitHub repository statistics monitoring system built with a Go microservices architecture, gRPC, REST, and PostgreSQL.

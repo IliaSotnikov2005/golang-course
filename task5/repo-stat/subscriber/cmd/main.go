@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/platform/logger"
 	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/subscriber/internal/app"
@@ -26,10 +25,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	appCtx, appCancel := context.WithCancel(context.Background())
+	defer appCancel()
 
-	application, err := app.New(ctx, log, cfg)
+	application, err := app.New(appCtx, log, cfg)
 	if err != nil {
 		_, _ = os.Stderr.WriteString("application init error: " + err.Error() + "\n")
 		os.Exit(1)

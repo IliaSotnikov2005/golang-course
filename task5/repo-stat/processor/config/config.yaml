@@ -4,8 +4,7 @@ grpc_server:
   port: ":8082"
   timeout_seconds: 5
 
-database_dsn: "postgres://postgres:postgres@localhost:5433/processor_db?sslmode=disable"
-
+database_dsn: "postgres://user:password@localhost:5433/processor_db?sslmode=disable"
 
 kafka:
   brokers: ["localhost:9092"]

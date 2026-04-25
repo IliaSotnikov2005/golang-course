@@ -16,6 +16,7 @@ func NewSubscribeUseCase(subscriptionRepository SubscriptionRepository, github G
 	return &SubscribeUseCase{
 		subscriptionRepository: subscriptionRepository,
 		github:                 github,
+		eventSender:            eventSender,
 	}
 }
 
@@ -38,6 +39,9 @@ func (uc *SubscribeUseCase) Execute(ctx context.Context, owner, repo string) (*d
 		return nil, err
 	}
 
-	_ = uc.eventSender.NotifySubscribed(ctx, owner, repo)
+	err = uc.eventSender.NotifySubscribed(ctx, owner, repo)
+	if err != nil {
+		return nil, err
+	}
 	return sub, nil
 }
