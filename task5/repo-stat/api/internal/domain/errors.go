@@ -20,4 +20,6 @@ var (
 	ErrInternal = errors.New("internal error")
 
 	ErrSubscriptionAlreadyExists = errors.New("subscription is already exists")
+
+	ErrAccepted = errors.New("request accepted: data is being collected")
 )

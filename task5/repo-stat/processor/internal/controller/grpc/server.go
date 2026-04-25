@@ -2,6 +2,7 @@ package grpccontroller
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 
 	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/processor/internal/domain"
@@ -41,6 +42,10 @@ func (h *Handler) GetRepository(ctx context.Context, req *processorpb.GetReposit
 
 	repo, err := h.getRepositoryUseCase.Execute(ctx, req.GetOwner(), req.GetRepo())
 	if err != nil {
+		if errors.Is(err, domain.ErrAccepted) {
+			return nil, status.Error(codes.Unavailable, "request accepted")
+		}
+
 		h.log.Error("usecase error", slog.String("error", err.Error()))
 		return nil, status.Error(codes.Internal, err.Error())
 	}

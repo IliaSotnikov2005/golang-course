@@ -1,95 +1,118 @@
 package app
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net"
 
 	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/platform/interceptors"
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/processor/internal/adapter/collector"
+	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/processor/internal/adapter/db"
+	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/processor/internal/adapter/kafka"
 	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/processor/internal/config"
 	grpccontroller "github.com/IliaSotnikov2005/golang-course/task5/repo-stat/processor/internal/controller/grpc"
 	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/processor/internal/usecase"
-	collectorpb "github.com/IliaSotnikov2005/golang-course/task5/repo-stat/proto/collector"
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/proto/processor"
+	pb "github.com/IliaSotnikov2005/golang-course/task5/repo-stat/proto/processor"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/twmb/franz-go/pkg/kgo"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 type App struct {
-	log        *slog.Logger
-	gRPCServer *grpc.Server
-	port       string
-	conn       *grpc.ClientConn
+	log            *slog.Logger
+	gRPCServer     *grpc.Server
+	port           string
+	pgPool         *pgxpool.Pool
+	kafkaClient    *kgo.Client
+	resultConsumer *kafka.ResultConsumer
 }
 
 func New(
+	ctx context.Context,
 	log *slog.Logger,
 	cfgGRPC config.GRPCServer,
-	collectorAddress string,
+	databaseDSN string,
+	cfgKafka config.KafkaConfig,
 ) (*App, error) {
-	conn, err := grpc.NewClient(collectorAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	m, err := migrate.New(
+		"file://migrations",
+		databaseDSN,
+	)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("failed to create migrate instance: %w", err)
 	}
 
-	collectorRawClient := collectorpb.NewCollectorServiceClient(conn)
+	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		return nil, fmt.Errorf("failed to run up migrations: %w", err)
+	}
 
-	collectorAdapter := collector.NewCollectorAdapter(collectorRawClient)
+	log.Info("migrations applied successfully")
 
-	getRepositoryUseCase := usecase.NewGetRepositoryUseCase(collectorAdapter)
-	getSubscribtionsInfoUseCase := usecase.NewGetSubscriptionsInfoUseCase(collectorAdapter)
-	pingUseCase := usecase.NewPingUseCase()
+	pool, err := pgxpool.New(ctx, databaseDSN)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to db: %w", err)
+	}
 
-	gRPCHandler := grpccontroller.NewHandler(log, getRepositoryUseCase, getSubscribtionsInfoUseCase, pingUseCase)
+	kClient, err := kgo.NewClient(
+		kgo.SeedBrokers(cfgKafka.Brokers...),
+		kgo.ConsumeTopics(cfgKafka.ResultsTopic),
+		kgo.ConsumerGroup("processor-group"),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("kafka client error: %w", err)
+	}
 
+	storage := db.NewPostgresRepository(pool)
+	publisher := kafka.NewPublisher(kClient, cfgKafka.RequestsTopic)
+	resultsConsumer := kafka.NewResultConsumer(kClient, storage, log)
+
+	getRepoUC := usecase.NewGetRepositoryUseCase(storage, publisher)
+	infoUC := usecase.NewGetSubscriptionsInfoUseCase(storage)
+	pingUC := usecase.NewPingUseCase()
+
+	grpcHandler := grpccontroller.NewHandler(log, getRepoUC, infoUC, pingUC)
 	gRPCServer := grpc.NewServer(grpc.ConnectionTimeout(cfgGRPC.Timeout), grpc.ChainUnaryInterceptor(interceptors.LoggingInterceptor(log)))
-	processor.RegisterProcessorServiceServer(gRPCServer, gRPCHandler)
+	pb.RegisterProcessorServiceServer(gRPCServer, grpcHandler)
 
 	return &App{
-		log:        log,
-		gRPCServer: gRPCServer,
-		port:       cfgGRPC.Port,
-		conn:       conn,
+		log:            log,
+		gRPCServer:     gRPCServer,
+		port:           cfgGRPC.Port,
+		pgPool:         pool,
+		kafkaClient:    kClient,
+		resultConsumer: resultsConsumer,
 	}, nil
 }
 
-func (a *App) MustRun() {
+func (a *App) MustRun(ctx context.Context) {
 	go func() {
-		if err := a.Run(); err != nil {
+		if err := a.Run(ctx); err != nil {
 			panic(err)
 		}
 	}()
 }
 
-func (a *App) Run() error {
-	const operation = "app.Run"
+func (a *App) Run(ctx context.Context) error {
+	go a.resultConsumer.Start(ctx)
 
-	log := a.log.With(
-		slog.String("operation", operation),
-		slog.String("port", a.port),
-	)
-
-	lis, err := net.Listen("tcp", a.port)
+	lis, err := net.Listen("tcp", ":"+a.port)
 	if err != nil {
-		return fmt.Errorf("%s: %w", operation, err)
+		return fmt.Errorf("Processor start error: %w", err)
 	}
 
-	log.Info("grpc server is running", slog.String("addr", lis.Addr().String()))
+	a.log.Info("grpc server is running", slog.String("port", a.port))
 
-	if err := a.gRPCServer.Serve(lis); err != nil {
-		return fmt.Errorf("%s: %w", operation, err)
-	}
-
-	return nil
+	return a.gRPCServer.Serve(lis)
 }
 
 func (a *App) Stop() {
-	const operation = "app.Stop"
-
-	a.log.With(slog.String("operation", operation)).Info("stopping gRPC server", slog.String("port", a.port))
-
+	a.log.Info("stopping application")
 	a.gRPCServer.GracefulStop()
+	if a.kafkaClient != nil {
+		a.kafkaClient.Close()
+	}
 
-	a.conn.Close()
+	a.pgPool.Close()
 }

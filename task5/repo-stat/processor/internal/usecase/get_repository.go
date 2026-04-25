@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/processor/internal/domain"
 )
@@ -21,13 +22,18 @@ func NewGetRepositoryUseCase(storage DataStorage, publisher EventPublisher) *Get
 
 func (u *GetRepositoryUseCase) Execute(ctx context.Context, owner, repo string) (*domain.Repository, error) {
 	fullName := owner + "/" + repo
+
 	res, err := u.storage.GetByFullName(ctx, fullName)
 	if err == nil {
 		return res, nil
 	}
 
 	if errors.Is(err, domain.ErrNotFound) {
-		_ = u.publisher.PublishFetchRequest(ctx, owner, repo)
+		err := u.publisher.PublishFetchRequest(ctx, owner, repo)
+		if err != nil {
+			return nil, fmt.Errorf("failed to publish request: %w", err)
+		}
+
 		return nil, domain.ErrAccepted
 	}
 

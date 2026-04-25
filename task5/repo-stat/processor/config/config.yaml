@@ -4,4 +4,10 @@ grpc_server:
   port: ":8082"
   timeout_seconds: 5
 
-collector_addr: "localhost:8081"
+database_dsn: "postgres://postgres:postgres@localhost:5433/processor_db?sslmode=disable"
+
+
+kafka:
+  brokers: ["localhost:9092"]
+  requests_topic: "repository_requests"
+  results_topic: "repository_results"

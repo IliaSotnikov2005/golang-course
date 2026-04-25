@@ -10,6 +10,7 @@ import (
 
 type Querier interface {
 	GetRepository(ctx context.Context, fullName string) (Repository, error)
+	ListAllRepositories(ctx context.Context) ([]Repository, error)
 	UpsertRepository(ctx context.Context, arg UpsertRepositoryParams) error
 }
 

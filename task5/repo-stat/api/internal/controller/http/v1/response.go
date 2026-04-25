@@ -37,6 +37,9 @@ func (h *Handler) handleError(w http.ResponseWriter, err error) {
 	case errors.Is(err, domain.ErrTimeout):
 		statusCode = http.StatusGatewayTimeout
 		errorMessage = http.StatusText(http.StatusGatewayTimeout)
+	case errors.Is(err, domain.ErrAccepted):
+		statusCode = http.StatusAccepted
+		errorMessage = "Data is being collected. Please try again in a few seconds."
 	default:
 		statusCode = http.StatusInternalServerError
 		errorMessage = http.StatusText(http.StatusInternalServerError)

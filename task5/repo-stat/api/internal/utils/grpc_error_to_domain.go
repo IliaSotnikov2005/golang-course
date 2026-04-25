@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/api/internal/domain"
 	"google.golang.org/grpc/codes"
@@ -40,8 +41,10 @@ func MapGRPCErrorToDomain(err error) error {
 		return fmt.Errorf("%w: request to collector service timed out", domain.ErrTimeout)
 
 	case codes.Unavailable:
+		if strings.Contains(st.Message(), "accepted") {
+			return fmt.Errorf("%w: %s", domain.ErrAccepted, st.Message())
+		}
 		return fmt.Errorf("%w: collector service is unavailable", domain.ErrInternal)
-
 	case codes.Internal:
 		return fmt.Errorf("%w: collector service internal error: %s", domain.ErrInternal, st.Message())
 

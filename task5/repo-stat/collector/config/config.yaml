@@ -9,8 +9,7 @@ subscriber:
   address: "localhost:8083"
 
 kafka:
-  brokers:
-    - "localhost:9092"
-  request_topic: "request_topic"
-  response_topic: "response_topic"
+  brokers: ["localhost:9092"]
+  requests_topic: "repository_requests" # Слушает запросы от Sub и Proc
+  results_topic: "repository_results"
   group_id: "processor_group"

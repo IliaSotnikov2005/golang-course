@@ -2,6 +2,9 @@
 SELECT * FROM repositories
 WHERE full_name = $1 LIMIT 1;
 
+-- name: ListAllRepositories :many
+SELECT * FROM repositories ORDER BY full_name;
+
 -- name: UpsertRepository :exec
 INSERT INTO repositories (
     full_name, description, stargazers, forks, created_at, html_url, last_cached

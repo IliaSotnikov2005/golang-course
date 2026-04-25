@@ -10,15 +10,22 @@ import (
 )
 
 type Config struct {
-	LogLevel      string     `yaml:"log-level" env-default:"INFO"`
-	GRPCServer    GRPCServer `yaml:"grpc_server"`
-	CollectorAddr string     `yaml:"collector_addr" env-required:"true"`
+	LogLevel    string      `yaml:"log-level" env-default:"INFO"`
+	GRPCServer  GRPCServer  `yaml:"grpc_server"`
+	KafkaConfig KafkaConfig `yaml:"kafka"`
+	DatabaseDSN string      `yaml:"database_dsn"`
 }
 
 type GRPCServer struct {
 	Port           string `yaml:"port"`
 	TimeoutSeconds int    `yaml:"timeout_seconds"`
 	Timeout        time.Duration
+}
+
+type KafkaConfig struct {
+	Brokers       []string `yaml:"brokers" env-required:"true"`
+	RequestsTopic string   `yaml:"requests_topic" env-default:"repository_requests"`
+	ResultsTopic  string   `yaml:"results_topic" env-default:"repository_results"`
 }
 
 func Load() (*Config, error) {

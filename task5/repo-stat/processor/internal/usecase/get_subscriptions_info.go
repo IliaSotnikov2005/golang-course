@@ -7,13 +7,13 @@ import (
 )
 
 type GetSubscriptionsInfoUseCase struct {
-	collector RepositoryProvider
+	storage DataStorage
 }
 
-func NewGetSubscriptionsInfoUseCase(collector RepositoryProvider) *GetSubscriptionsInfoUseCase {
-	return &GetSubscriptionsInfoUseCase{collector: collector}
+func NewGetSubscriptionsInfoUseCase(storage DataStorage) *GetSubscriptionsInfoUseCase {
+	return &GetSubscriptionsInfoUseCase{storage: storage}
 }
 
-func (guc *GetSubscriptionsInfoUseCase) Execute(ctx context.Context) ([]domain.Repository, error) {
-	return guc.collector.GetSubscriptionsInfo(ctx)
+func (uc *GetSubscriptionsInfoUseCase) Execute(ctx context.Context) ([]domain.Repository, error) {
+	return uc.storage.ListAll(ctx)
 }

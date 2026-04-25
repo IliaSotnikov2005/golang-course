@@ -31,6 +31,38 @@ func (q *Queries) GetRepository(ctx context.Context, fullName string) (Repositor
 	return i, err
 }
 
+const listAllRepositories = `-- name: ListAllRepositories :many
+SELECT full_name, description, stargazers, forks, created_at, html_url, last_cached FROM repositories ORDER BY full_name
+`
+
+func (q *Queries) ListAllRepositories(ctx context.Context) ([]Repository, error) {
+	rows, err := q.db.Query(ctx, listAllRepositories)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Repository
+	for rows.Next() {
+		var i Repository
+		if err := rows.Scan(
+			&i.FullName,
+			&i.Description,
+			&i.Stargazers,
+			&i.Forks,
+			&i.CreatedAt,
+			&i.HtmlUrl,
+			&i.LastCached,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const upsertRepository = `-- name: UpsertRepository :exec
 INSERT INTO repositories (
     full_name, description, stargazers, forks, created_at, html_url, last_cached
