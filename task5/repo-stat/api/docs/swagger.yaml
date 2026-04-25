@@ -1,0 +1,197 @@
+basePath: /api
+definitions:
+  v1.ErrorResponse:
+    properties:
+      error:
+        example: Not Found
+        type: string
+      message:
+        example: Repository not found
+        type: string
+    type: object
+  v1.HealthResponse:
+    properties:
+      services:
+        items:
+          $ref: '#/definitions/v1.ServiceStatus'
+        type: array
+      status:
+        example: ok
+        type: string
+    type: object
+  v1.RepositoryResponse:
+    properties:
+      created_at:
+        example: "2014-08-19T22:33:41Z"
+        type: string
+      description:
+        example: The Go programming language
+        type: string
+      forks:
+        example: 12345
+        type: integer
+      full_name:
+        example: go
+        type: string
+      html_url:
+        example: https://github.com/golang/go
+        type: string
+      stars:
+        example: 123456
+        type: integer
+    type: object
+  v1.ServiceStatus:
+    properties:
+      name:
+        example: processor
+        type: string
+      status:
+        example: up
+        type: string
+    type: object
+  v1.SubscriptionResponse:
+    properties:
+      owner:
+        example: google
+        type: string
+      repo:
+        example: go
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: A service for collecting information of GitHub repositories.
+  title: Repo Stat API
+  version: "1.0"
+paths:
+  /ping:
+    get:
+      description: Returns API status and availability of dependent microservices
+        (Collector, Subscriber)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: All systems are working fine
+          schema:
+            $ref: '#/definitions/v1.HealthResponse'
+        "503":
+          description: One or more services are unavailable
+          schema:
+            $ref: '#/definitions/v1.HealthResponse'
+      summary: Checking the service status (Healthcheck)
+      tags:
+      - system
+  /v1/repositories/info:
+    get:
+      consumes:
+      - application/json
+      description: Returns data about stars, forks, and the repository description
+        by its URL
+      parameters:
+      - description: GitHub URL (e.g. https://github.com/google/go-github)
+        in: query
+        name: url
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.RepositoryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: Gets information about GitHub repository
+      tags:
+      - repositories
+  /v1/subscriptions:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/v1.SubscriptionResponse'
+            type: array
+      summary: List all subscriptions
+      tags:
+      - subscriptions
+  /v1/subscriptions/{owner}/{repo}:
+    delete:
+      parameters:
+      - description: Repository Owner
+        in: path
+        name: owner
+        required: true
+        type: string
+      - description: Repository Name
+        in: path
+        name: repo
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Unsubscribe from a repository
+      tags:
+      - subscriptions
+    post:
+      parameters:
+      - description: Repository Owner
+        in: path
+        name: owner
+        required: true
+        type: string
+      - description: Repository Name
+        in: path
+        name: repo
+        required: true
+        type: string
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Subscribe to a repository
+      tags:
+      - subscriptions
+  /v1/subscriptions/info:
+    get:
+      description: Triggers a chain API -> Processor -> Collector (which fetches list
+        from Subscriber)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/v1.RepositoryResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.ErrorResponse'
+      summary: Get detailed info about all subscribed repositories
+      tags:
+      - subscriptions
+swagger: "2.0"

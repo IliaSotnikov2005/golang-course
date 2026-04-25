@@ -1,0 +1,16 @@
+log-level: "DEBUG"
+
+github:
+  baseurl: "https://api.github.com/repos"
+  timeout_seconds: 10
+  user-agent: "Collector-Service/1.0"
+
+subscriber:
+  address: "localhost:8083"
+
+kafka:
+  brokers:
+    - "localhost:9092"
+  request_topic: "request_topic"
+  response_topic: "response_topic"
+  group_id: "processor_group"

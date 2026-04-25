@@ -1,0 +1,131 @@
+services:
+  postgres_subscriber:
+    image: postgres:15-alpine
+    container_name: postgres_subscriber
+    environment:
+      POSTGRES_USER: ${DB_USER_SUB:-user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD_SUB:-password}
+      POSTGRES_DB: ${DB_NAME_SUB:-subscriber_db}
+    ports:
+      - "${DB_PORT_SUB:-5432}:5432"
+    volumes:
+      - postgres_subscriber_data:/var/lib/postgresql/data
+    network_mode: host
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-user} -d ${DB_NAME:-subscriber_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  postgres_processor:
+      image: postgres:15-alpine
+      container_name: postgres_processor
+      environment:
+        POSTGRES_USER: ${DB_USER_PROC:-user}
+        POSTGRES_PASSWORD: ${DB_PASSWORD_PROC:-password}
+        POSTGRES_DB: ${DB_NAME_PROC:-processor_db}
+      command: ["-p", "5433"]
+      ports:
+        - "${DB_PORT_PROC:-5433}:5433"
+      volumes:
+        - postgres_processor_data:/var/lib/postgresql/data
+      network_mode: host
+      healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U ${PROC_DB_USER:-proc_user} -d ${PROC_DB_NAME:-processor_db} -p 5433"]
+        interval: 5s
+        timeout: 5s
+        retries: 5
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    network_mode: host
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://localhost:9092'
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@localhost:9093'
+      KAFKA_LISTENERS: 'PLAINTEXT://:9092,CONTROLLER://:9093'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      CLUSTER_ID: ${KAFKA_CLUSTER_ID}
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  collector:
+    build:
+      context: ./repo-stat
+      dockerfile: ./Dockerfile.collector
+    container_name: collector
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./repo-stat/collector/config/config.yaml:/config/config.yaml
+    depends_on:
+      kafka:
+        condition: service_healthy
+    network_mode: host
+  processor:
+    build:
+      context: ./repo-stat
+      dockerfile: ./Dockerfile.processor
+    container_name: processor
+    ports:
+      - "8082:8082"
+    volumes:
+      - ./repo-stat/processor/config/config.yaml:/config/config.yaml
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres_processor:
+        condition: service_healthy
+    network_mode: host
+  api:
+    build:
+      context: ./repo-stat
+      dockerfile: ./Dockerfile.api
+    container_name: api
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./repo-stat/api/config/config.yaml:/config/config.yaml
+    depends_on:
+      - processor
+      - subscriber
+    network_mode: host
+  subscriber:
+    build:
+      context: ./repo-stat
+      dockerfile: ./Dockerfile.subscriber
+    container_name: subscriber
+    ports:
+      - "8083:8083"
+    volumes:
+      - ./repo-stat/subscriber/config/config.yaml:/config/config.yaml
+      - ./repo-stat/subscriber/migrations:/root/migrations
+    network_mode: host
+    depends_on:
+      postgres_subscriber:
+        condition: service_healthy
+  tests:
+    image: tests:latest
+    build:
+      context: tests
+    container_name: tests
+    restart: "no"
+    depends_on:
+      - api
+    network_mode: host
+    # entrypoint: ["true"]
+
+volumes:
+  postgres_subscriber_data:
+  postgres_processor_data: 
