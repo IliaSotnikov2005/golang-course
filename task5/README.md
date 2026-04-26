@@ -1,21 +1,20 @@
-#file:repo-stat взаимодействие между #file:processor и #file:collector должно быть через kafka. Но запрос по /v1/subscriptions/info всегда возвращает "error": "Data is being collected. Please try again in a few seconds."
-
 # Repo Stat Service
 
-A GitHub repository statistics monitoring system built with a Go microservices architecture, gRPC, REST, and PostgreSQL.
+A GitHub repository statistics monitoring system built with a Go microservices architecture, gRPC, REST, Kafka, and PostgreSQL.
 ## Architecture
 
 The project follows Clean Architecture principles and consists of the following components:
 
-- API Gateway (Port 8080): Acts as the entry point. It serves the REST API, provides Swagger UI, and maps internal gRPC errors to standard HTTP statuses.
+- API Gateway (Port 8080): The entry point for clients. Provides a REST API and Swagger UI, translating HTTP requests into gRPC calls.
 
-- Subscriber Service (Port 8083): Manages repository subscriptions in PostgreSQL. It validates repository existence via the GitHub API.
+- Subscriber Service (Port 8083): Manages repository subscriptions. Persists data in its own PostgreSQL instance and publishes "subscription created" events to Kafka.
 
-- Processor Service (Port 8082): Aggregates repository data by orchestrating requests to the Collector.
+- Processor Service (Port 8082): Maintains a "Smart Cache" in its own PostgreSQL instance. It consumes results from Kafka to store repository statistics and serves them via gRPC.
 
-- Collector Service (Port 8081): A dedicated layer for fetching raw data from the external GitHub API.
+- Collector Service (Port 8081): A worker service that listens to Kafka for new tasks, fetches data from the GitHub API, and publishes the results back to Kafka.
 
 - PostgreSQL: The relational database used by the Subscriber Service to persist data.
+- Kafka: Provides decoupled, reliable data transfer between the services.
 
 ## Getting Started
 Prerequisites
@@ -38,7 +37,6 @@ docker compose up --build
 The services will be available at:
 - REST API: http://localhost:8080
 - Swagger UI: http://localhost:8080/swagger/index.html
-- Collector (gRPC): localhost:8081
 - Processor (gRPC): localhost:8082
 - Subscriber (gRPC): localhost:8083
 
@@ -71,6 +69,7 @@ go test -v ./tests/...
 ├── api/             # REST Gateway (Handlers, gRPC Clients)
 ├── collector/       # GitHub Data Collection Service
 ├── processor/       # Data Processing Service
+│   └── migrations/  # SQL Migration files
 ├── subscriber/      # Subscription Management Service
 │   └── migrations/  # SQL Migration files
 ├── proto/           # Protobuf definitions & generated code
