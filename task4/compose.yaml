@@ -1,0 +1,81 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_DB: ${DB_NAME:-subscriber_db}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    network_mode: host
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-user} -d ${DB_NAME:-subscriber_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  collector:
+    build:
+      context: ./repo-stat
+      dockerfile: ./Dockerfile.collector
+    container_name: collector
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./repo-stat/collector/config/config.yaml:/config/config.yaml
+    network_mode: host
+  processor:
+    build:
+      context: ./repo-stat
+      dockerfile: ./Dockerfile.processor
+    container_name: processor
+    ports:
+      - "8082:8082"
+    volumes:
+      - ./repo-stat/processor/config/config.yaml:/config/config.yaml
+    depends_on:
+      - collector
+    network_mode: host
+  api:
+    build:
+      context: ./repo-stat
+      dockerfile: ./Dockerfile.api
+    container_name: api
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./repo-stat/api/config/config.yaml:/config/config.yaml
+    depends_on:
+      - processor
+      - subscriber
+    network_mode: host
+  subscriber:
+    build:
+      context: ./repo-stat
+      dockerfile: ./Dockerfile.subscriber
+    container_name: subscriber
+    ports:
+      - "8083:8083"
+    volumes:
+      - ./repo-stat/subscriber/config/config.yaml:/config/config.yaml
+      - ./repo-stat/subscriber/migrations:/root/migrations
+    network_mode: host
+    depends_on:
+      postgres:
+        condition: service_healthy
+  tests:
+    image: tests:latest
+    build:
+      context: tests
+    container_name: tests
+    restart: "no"
+    depends_on:
+      - api
+    network_mode: host
+    # entrypoint: ["true"]
+    
+volumes:
+  postgres_data:
