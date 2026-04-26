@@ -59,14 +59,14 @@ func New(
 
 	kClient, err := kgo.NewClient(
 		kgo.SeedBrokers(cfgKafka.Brokers...),
-		kgo.ConsumeTopics(cfgKafka.ResultsTopic),
+		kgo.ConsumeTopics(cfgKafka.ResponseTopic),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("kafka client error: %w", err)
 	}
 
 	storage := db.NewPostgresRepository(pool)
-	publisher := kafka.NewPublisher(kClient, cfgKafka.RequestsTopic)
+	publisher := kafka.NewPublisher(kClient, cfgKafka.RequestTopic)
 	resultsConsumer := kafka.NewResultConsumer(kClient, storage, log)
 
 	getRepoUC := usecase.NewGetRepositoryUseCase(storage, publisher)

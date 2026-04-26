@@ -17,4 +17,5 @@ database-dsn: "postgres://user:password@localhost:5432/subscriber_db?sslmode=dis
 
 kafka:
   brokers: ["localhost:9092"]
-  topic: "repository_requests"
+  topic: "repository-request"
+  group_id: "processor-group"

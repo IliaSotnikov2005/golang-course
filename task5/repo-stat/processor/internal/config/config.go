@@ -24,8 +24,9 @@ type GRPCServer struct {
 
 type KafkaConfig struct {
 	Brokers       []string `yaml:"brokers" env-required:"true"`
-	RequestsTopic string   `yaml:"requests_topic" env-default:"repository_requests"`
-	ResultsTopic  string   `yaml:"results_topic" env-default:"repository_results"`
+	RequestTopic  string   `yaml:"requests_topic" env-default:"repository-request"`
+	ResponseTopic string   `yaml:"response_topic" env-default:"repository-response"`
+	GroupID       string   `yaml:"group_id"`
 }
 
 func Load() (*Config, error) {

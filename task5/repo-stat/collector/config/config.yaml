@@ -10,6 +10,6 @@ subscriber:
 
 kafka:
   brokers: ["localhost:9092"]
-  requests_topic: "repository_requests"
-  results_topic: "repository_results"
+  request_topic: "repository-request"
+  response_topic: "repository-response"
   group_id: "processor-group"
