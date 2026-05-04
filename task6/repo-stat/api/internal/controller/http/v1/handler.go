@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	_ "github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/docs"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/internal/controller/http/respond"
 	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/internal/usecase"
 	"github.com/go-chi/chi"
 )
@@ -56,7 +57,7 @@ func (h *Handler) getRepository(w http.ResponseWriter, r *http.Request) {
 
 	repository, err := h.getRepositoryUseCase.Execute(r.Context(), rawURL)
 	if err != nil {
-		h.handleError(w, err)
+		respond.Error(w, err)
 		return
 	}
 
@@ -69,7 +70,7 @@ func (h *Handler) getRepository(w http.ResponseWriter, r *http.Request) {
 		HTMLURL:         repository.HTMLURL,
 	}
 
-	h.respondJSON(w, http.StatusOK, response)
+	respond.JSON(w, http.StatusOK, response)
 }
 
 // subscribe godoc
@@ -84,11 +85,11 @@ func (h *Handler) subscribe(w http.ResponseWriter, r *http.Request) {
 	repo := chi.URLParam(r, "repo")
 
 	if err := h.subscribeUseCase.Execute(r.Context(), owner, repo); err != nil {
-		h.handleError(w, err)
+		respond.Error(w, err)
 		return
 	}
 
-	h.respondJSON(w, http.StatusCreated, map[string]string{"status": "subscribed"})
+	respond.JSON(w, http.StatusCreated, map[string]string{"status": "subscribed"})
 
 }
 
@@ -104,11 +105,11 @@ func (h *Handler) unsubscribe(w http.ResponseWriter, r *http.Request) {
 	repo := chi.URLParam(r, "repo")
 
 	if err := h.unsubscribeUseCase.Execute(r.Context(), owner, repo); err != nil {
-		h.handleError(w, err)
+		respond.Error(w, err)
 		return
 	}
 
-	h.respondJSON(w, http.StatusOK, map[string]string{"status": "unsubscribed"})
+	respond.JSON(w, http.StatusOK, map[string]string{"status": "unsubscribed"})
 }
 
 // listSubscriptions godoc
@@ -119,7 +120,7 @@ func (h *Handler) unsubscribe(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) listSubscriptions(w http.ResponseWriter, r *http.Request) {
 	subs, err := h.listSubscriptionsUseCase.Execute(r.Context())
 	if err != nil {
-		h.handleError(w, err)
+		respond.Error(w, err)
 		return
 	}
 
@@ -131,7 +132,7 @@ func (h *Handler) listSubscriptions(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	h.respondJSON(w, http.StatusOK, response)
+	respond.JSON(w, http.StatusOK, response)
 }
 
 // getSubscriptionsInfo godoc
@@ -145,7 +146,7 @@ func (h *Handler) listSubscriptions(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) getSubscriptionsInfo(w http.ResponseWriter, r *http.Request) {
 	repositories, err := h.getSubsInfoUseCase.Execute(r.Context())
 	if err != nil {
-		h.handleError(w, err)
+		respond.Error(w, err)
 		return
 	}
 
@@ -161,7 +162,7 @@ func (h *Handler) getSubscriptionsInfo(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	h.respondJSON(w, http.StatusOK, response)
+	respond.JSON(w, http.StatusOK, response)
 }
 
 // healthCheck godoc
@@ -180,5 +181,5 @@ func (h *Handler) healthCheck(w http.ResponseWriter, r *http.Request) {
 		status = http.StatusServiceUnavailable
 	}
 
-	h.respondJSON(w, status, res)
+	respond.JSON(w, status, res)
 }

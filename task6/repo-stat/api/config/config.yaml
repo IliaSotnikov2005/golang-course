@@ -8,3 +8,14 @@ http:
 services:
   processor: "localhost:8082"
   subscriber: "localhost:8083"
+
+redis:
+  host: "localhost"
+  port: "6379"
+
+cache:
+  ttl_seconds: 60
+
+rate_limit:
+  requests_per_second: 5
+  burst: 10

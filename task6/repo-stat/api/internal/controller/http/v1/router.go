@@ -4,18 +4,20 @@ import (
 	"net/http"
 	"time"
 
+	redismiddleware "github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/internal/controller/http/v1/middleware"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-func (h *Handler) Router() chi.Router {
+func (h *Handler) Router(limiter redismiddleware.Limiter, rps float64, burst int) chi.Router {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(redismiddleware.RateLimit(h.log, limiter, rps, burst))
 
 	r.Use(middleware.Timeout(30 * time.Second))
 

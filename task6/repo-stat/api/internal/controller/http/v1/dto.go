@@ -28,8 +28,3 @@ type ServiceStatus struct {
 	Name   string `json:"name" example:"processor"`
 	Status string `json:"status" example:"up"`
 }
-
-// ErrorResponse represents a error response
-type ErrorResponse struct {
-	Error string `json:"error" example:"Repository not found"`
-}

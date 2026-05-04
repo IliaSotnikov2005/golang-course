@@ -1,4 +1,4 @@
-package v1
+package respond
 
 import (
 	"encoding/json"
@@ -8,7 +8,11 @@ import (
 	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/internal/domain"
 )
 
-func (h *Handler) handleError(w http.ResponseWriter, err error) {
+type ErrorResponse struct {
+	Error string `json:"error" example:"Repository not found"`
+}
+
+func Error(w http.ResponseWriter, err error) {
 	var statusCode int
 	var errorMessage string
 
@@ -45,10 +49,10 @@ func (h *Handler) handleError(w http.ResponseWriter, err error) {
 		errorMessage = http.StatusText(http.StatusInternalServerError)
 	}
 
-	h.respondJSON(w, statusCode, ErrorResponse{Error: errorMessage})
+	JSON(w, statusCode, ErrorResponse{Error: errorMessage})
 }
 
-func (h *Handler) respondJSON(w http.ResponseWriter, status int, data any) {
+func JSON(w http.ResponseWriter, status int, data any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 

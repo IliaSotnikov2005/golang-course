@@ -62,7 +62,8 @@ func New(
 		listUC,
 		subscriptionsInfoUC,
 		pingUC)
-	router := handler.Router()
+	limiter := redis.NewRedisLimiter(redisClient)
+	router := handler.Router(limiter, cfg.RateLimit.RequestsPerSecond, cfg.RateLimit.Burst)
 
 	srv := &http.Server{
 		Addr:         cfg.HTTP.Port,
