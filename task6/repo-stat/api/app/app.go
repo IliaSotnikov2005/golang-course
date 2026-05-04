@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/internal/adapter/processor"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/internal/adapter/redis"
 	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/internal/adapter/subscriber"
 	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/internal/config"
 	v1 "github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/internal/controller/http/v1"
@@ -24,22 +25,34 @@ func New(
 	log *slog.Logger,
 	cfg *config.Config,
 ) (*App, error) {
-	processorClient, err := processor.NewClient(cfg.Services.Processor, log)
+
+	redisClient, _ := redis.NewClient(cfg.Redis.Host, cfg.Redis.Port)
+
+	redisCache := redis.NewCache(redisClient)
+
+	processorBaseClient, err := processor.NewClient(cfg.Services.Processor, log)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init processor client: %w", err)
 	}
+
+	processorWithCache := processor.NewCachingDecorator(
+		processorBaseClient,
+		redisCache,
+		log,
+		cfg.Cache.TTL,
+	)
 
 	subscriberClient, err := subscriber.NewClient(cfg.Services.Subscriber, log)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init subscriber client: %w", err)
 	}
 
-	getRepoUC := usecase.NewGetRepositoryUseCase(processorClient)
+	getRepoUC := usecase.NewGetRepositoryUseCase(processorWithCache)
 	subscribeUC := usecase.NewSubscribeUseCase(subscriberClient)
 	unsubscribeUC := usecase.NewUnsubscribeUseCase(subscriberClient)
 	listUC := usecase.NewListSubscriptionsUseCase(subscriberClient)
-	subscriptionsInfoUC := usecase.NewGetSubscriptionsInfoUseCase(processorClient)
-	pingUC := usecase.NewPingUseCase(processorClient, subscriberClient)
+	subscriptionsInfoUC := usecase.NewGetSubscriptionsInfoUseCase(processorWithCache)
+	pingUC := usecase.NewPingUseCase(processorBaseClient, subscriberClient)
 
 	handler := v1.NewHandler(
 		log,
