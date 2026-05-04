@@ -10,9 +10,12 @@ import (
 )
 
 type Config struct {
-	LogLevel string   `yaml:"log_level" env-default:"INFO"`
-	Services Services `yaml:"services"`
-	HTTP     HTTP
+	LogLevel  string
+	Services  Services
+	HTTP      HTTP
+	Redis     Redis
+	Cache     Cache
+	RateLimit RateLimit
 }
 
 type Services struct {
@@ -32,6 +35,24 @@ type httpRaw struct {
 	IdleTimeoutSeconds int    `yaml:"idle_timeout_seconds" env-default:"30"`
 }
 
+type Redis struct {
+	Host string `yaml:"host" env-default:"localhost"`
+	Port string `yaml:"port" env-default:"6379"`
+}
+
+type Cache struct {
+	TTL time.Duration
+}
+
+type cacheRaw struct {
+	TTLSeconds int `yaml:"ttl_seconds" env-default:"60"`
+}
+
+type RateLimit struct {
+	RequestsPerSecond float64 `yaml:"requests_per_second" env-default:"5"`
+	Burst             int     `yaml:"burst" env-default:"10"`
+}
+
 func Load() (*Config, error) {
 	path := fetchConfigPath()
 	if path == "" {
@@ -43,9 +64,12 @@ func Load() (*Config, error) {
 	}
 
 	var rawCfg struct {
-		LogLevel string   `yaml:"log_level"`
-		Services Services `yaml:"services"`
-		HTTP     httpRaw  `yaml:"http"`
+		LogLevel  string    `yaml:"log_level" env-default:"INFO"`
+		Services  Services  `yaml:"services"`
+		HTTP      httpRaw   `yaml:"http"`
+		Redis     Redis     `yaml:"redis"`
+		Cache     cacheRaw  `yaml:"cache"`
+		RateLimit RateLimit `yaml:"rate_limit"`
 	}
 
 	if err := cleanenv.ReadConfig(path, &rawCfg); err != nil {
@@ -60,6 +84,11 @@ func Load() (*Config, error) {
 			Timeout:     time.Duration(rawCfg.HTTP.TimeoutSeconds) * time.Second,
 			IdleTimeout: time.Duration(rawCfg.HTTP.IdleTimeoutSeconds) * time.Second,
 		},
+		Redis: rawCfg.Redis,
+		Cache: Cache{
+			TTL: time.Duration(rawCfg.Cache.TTLSeconds) * time.Second,
+		},
+		RateLimit: rawCfg.RateLimit,
 	}
 
 	return cfg, nil
