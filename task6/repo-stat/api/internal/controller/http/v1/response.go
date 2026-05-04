@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/api/internal/domain"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/internal/domain"
 )
 
 func (h *Handler) handleError(w http.ResponseWriter, err error) {

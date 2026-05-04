@@ -3,7 +3,7 @@ syntax = "proto3";
 package subscriber.v1;
 
 // protolint:disable MAX_LINE_LENGTH
-option go_package = "github.com/IliaSotnikov2005/golang-course/task5/repo-stat/subscriber;subscriberv1";
+option go_package = "github.com/IliaSotnikov2005/golang-course/task6/repo-stat/subscriber;subscriberv1";
 // protolint:enable MAX_LINE_LENGTH
 
 // Subscriber service provides methods to manage GitHub repository subscriptions.

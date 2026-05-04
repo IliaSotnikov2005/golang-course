@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	dtokafka "github.com/IliaSotnikov2005/golang-course/task5/repo-stat/platform/kafka"
+	dtokafka "github.com/IliaSotnikov2005/golang-course/task6/repo-stat/platform/kafka"
 	"github.com/twmb/franz-go/pkg/kgo"
 )
 

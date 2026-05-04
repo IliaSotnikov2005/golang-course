@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"log/slog"
 
-	pb "github.com/IliaSotnikov2005/golang-course/task5/repo-stat/proto/subscriber"
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/subscriber/internal/domain"
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/subscriber/internal/usecase"
+	pb "github.com/IliaSotnikov2005/golang-course/task6/repo-stat/proto/subscriber"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/subscriber/internal/domain"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/subscriber/internal/usecase"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

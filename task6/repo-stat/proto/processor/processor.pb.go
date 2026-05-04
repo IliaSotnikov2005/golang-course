@@ -396,7 +396,7 @@ const file_proto_processor_processor_proto_rawDesc = "" +
 	"\x10ProcessorService\x12R\n" +
 	"\rGetRepository\x12\x1f.processor.GetRepositoryRequest\x1a .processor.GetRepositoryResponse\x12g\n" +
 	"\x14GetSubscriptionsInfo\x12&.processor.GetSubscriptionsInfoRequest\x1a'.processor.GetSubscriptionsInfoResponse\x127\n" +
-	"\x04Ping\x12\x16.processor.PingRequest\x1a\x17.processor.PingResponseBKZIgithub.com/IliaSotnikov2005/golang-course/task5/repo-stat/proto/processorb\x06proto3"
+	"\x04Ping\x12\x16.processor.PingRequest\x1a\x17.processor.PingResponseBKZIgithub.com/IliaSotnikov2005/golang-course/task6/repo-stat/proto/processorb\x06proto3"
 
 var (
 	file_proto_processor_processor_proto_rawDescOnce sync.Once

@@ -8,13 +8,13 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/platform/interceptors"
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/subscriber/internal/adapters/db"
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/subscriber/internal/adapters/github"
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/subscriber/internal/adapters/kafka"
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/subscriber/internal/config"
-	grpccontroller "github.com/IliaSotnikov2005/golang-course/task5/repo-stat/subscriber/internal/controller/grpc"
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/subscriber/internal/usecase"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/platform/interceptors"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/subscriber/internal/adapters/db"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/subscriber/internal/adapters/github"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/subscriber/internal/adapters/kafka"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/subscriber/internal/config"
+	grpccontroller "github.com/IliaSotnikov2005/golang-course/task6/repo-stat/subscriber/internal/controller/grpc"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/subscriber/internal/usecase"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -22,7 +22,7 @@ import (
 	"github.com/twmb/franz-go/pkg/kgo"
 	"google.golang.org/grpc"
 
-	pb "github.com/IliaSotnikov2005/golang-course/task5/repo-stat/proto/subscriber"
+	pb "github.com/IliaSotnikov2005/golang-course/task6/repo-stat/proto/subscriber"
 )
 
 type App struct {

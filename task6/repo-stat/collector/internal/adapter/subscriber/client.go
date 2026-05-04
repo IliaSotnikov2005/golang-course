@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/collector/internal/domain"
-	pb "github.com/IliaSotnikov2005/golang-course/task5/repo-stat/proto/subscriber"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/collector/internal/domain"
+	pb "github.com/IliaSotnikov2005/golang-course/task6/repo-stat/proto/subscriber"
 )
 
 type Client struct {

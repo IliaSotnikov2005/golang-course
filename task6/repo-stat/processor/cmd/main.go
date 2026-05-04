@@ -8,9 +8,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/platform/logger"
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/processor/internal/app"
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/processor/internal/config"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/platform/logger"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/processor/internal/app"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/processor/internal/config"
 )
 
 func main() {

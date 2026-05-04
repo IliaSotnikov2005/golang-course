@@ -5,7 +5,7 @@ package collector;
 import "google/protobuf/timestamp.proto";
 
 // protolint:disable MAX_LINE_LENGTH
-option go_package = "github.com/IliaSotnikov2005/golang-course/task5/repo-stat/proto/collector";
+option go_package = "github.com/IliaSotnikov2005/golang-course/task6/repo-stat/proto/collector";
 // protolint:enable MAX_LINE_LENGTH 
 
 // CollectorService provides methods to retrieve GitHub repository data.

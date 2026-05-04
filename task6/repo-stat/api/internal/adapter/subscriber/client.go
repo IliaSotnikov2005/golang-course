@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/api/internal/domain"
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/api/internal/utils"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/internal/domain"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/internal/utils"
 
-	subscirberpb "github.com/IliaSotnikov2005/golang-course/task5/repo-stat/proto/subscriber"
+	subscirberpb "github.com/IliaSotnikov2005/golang-course/task6/repo-stat/proto/subscriber"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

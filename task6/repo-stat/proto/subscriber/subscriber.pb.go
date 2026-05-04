@@ -473,7 +473,7 @@ const file_proto_subscriber_subscriber_proto_rawDesc = "" +
 	"\x04Ping\x12\x1a.subscriber.v1.PingRequest\x1a\x1b.subscriber.v1.PingResponse\x12N\n" +
 	"\tSubscribe\x12\x1f.subscriber.v1.SubscribeRequest\x1a .subscriber.v1.SubscribeResponse\x12T\n" +
 	"\vUnsubscribe\x12!.subscriber.v1.UnsubscribeRequest\x1a\".subscriber.v1.UnsubscribeResponse\x12?\n" +
-	"\x04List\x12\x1a.subscriber.v1.ListRequest\x1a\x1b.subscriber.v1.ListResponseBSZQgithub.com/IliaSotnikov2005/golang-course/task5/repo-stat/subscriber;subscriberv1b\x06proto3"
+	"\x04List\x12\x1a.subscriber.v1.ListRequest\x1a\x1b.subscriber.v1.ListResponseBSZQgithub.com/IliaSotnikov2005/golang-course/task6/repo-stat/subscriber;subscriberv1b\x06proto3"
 
 var (
 	file_proto_subscriber_subscriber_proto_rawDescOnce sync.Once

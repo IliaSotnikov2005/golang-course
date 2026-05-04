@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/collector/internal/domain"
-	dtokafka "github.com/IliaSotnikov2005/golang-course/task5/repo-stat/platform/kafka"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/collector/internal/domain"
+	dtokafka "github.com/IliaSotnikov2005/golang-course/task6/repo-stat/platform/kafka"
 	"github.com/twmb/franz-go/pkg/kgo"
 )
 

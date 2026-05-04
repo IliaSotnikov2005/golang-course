@@ -396,7 +396,7 @@ const file_proto_collector_collector_proto_rawDesc = "" +
 	"\x10CollectorService\x12R\n" +
 	"\rGetRepository\x12\x1f.collector.GetRepositoryRequest\x1a .collector.GetRepositoryResponse\x12g\n" +
 	"\x14GetSubscriptionsInfo\x12&.collector.GetSubscriptionsInfoRequest\x1a'.collector.GetSubscriptionsInfoResponse\x127\n" +
-	"\x04Ping\x12\x16.collector.PingRequest\x1a\x17.collector.PingResponseBKZIgithub.com/IliaSotnikov2005/golang-course/task5/repo-stat/proto/collectorb\x06proto3"
+	"\x04Ping\x12\x16.collector.PingRequest\x1a\x17.collector.PingResponseBKZIgithub.com/IliaSotnikov2005/golang-course/task6/repo-stat/proto/collectorb\x06proto3"
 
 var (
 	file_proto_collector_collector_proto_rawDescOnce sync.Once

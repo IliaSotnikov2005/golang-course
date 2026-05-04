@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/api/internal/adapter/processor"
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/api/internal/adapter/subscriber"
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/api/internal/config"
-	v1 "github.com/IliaSotnikov2005/golang-course/task5/repo-stat/api/internal/controller/http/v1"
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/api/internal/usecase"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/internal/adapter/processor"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/internal/adapter/subscriber"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/internal/config"
+	v1 "github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/internal/controller/http/v1"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/internal/usecase"
 )
 
 type App struct {

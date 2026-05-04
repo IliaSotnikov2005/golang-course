@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/processor/internal/db"
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/processor/internal/domain"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/processor/internal/db"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/processor/internal/domain"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"

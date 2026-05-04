@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/collector/internal/domain"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/collector/internal/domain"
 )
 
 type Client struct {

@@ -5,9 +5,9 @@ import (
 	"errors"
 	"log/slog"
 
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/processor/internal/domain"
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/processor/internal/usecase"
-	processorpb "github.com/IliaSotnikov2005/golang-course/task5/repo-stat/proto/processor"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/processor/internal/domain"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/processor/internal/usecase"
+	processorpb "github.com/IliaSotnikov2005/golang-course/task6/repo-stat/proto/processor"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"

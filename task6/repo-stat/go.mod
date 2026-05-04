@@ -1,4 +1,4 @@
-module github.com/IliaSotnikov2005/golang-course/task5/repo-stat
+module github.com/IliaSotnikov2005/golang-course/task6/repo-stat
 
 go 1.26
 

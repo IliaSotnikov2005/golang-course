@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	_ "github.com/IliaSotnikov2005/golang-course/task5/repo-stat/api/docs"
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/api/internal/usecase"
+	_ "github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/docs"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/internal/usecase"
 	"github.com/go-chi/chi"
 )
 

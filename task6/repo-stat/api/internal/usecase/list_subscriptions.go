@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/api/internal/domain"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/internal/domain"
 )
 
 type ListSubscriptionsUseCase struct {

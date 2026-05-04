@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/processor/internal/domain"
+	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/processor/internal/domain"
 )
 
 type GetRepositoryUseCase struct {
