@@ -1,0 +1,13 @@
+log-level: "DEBUG"
+
+grpc_server:
+  port: ":8082"
+  timeout_seconds: 5
+
+database_dsn: "postgres://user:password@localhost:5433/processor_db?sslmode=disable"
+
+kafka:
+  brokers: ["localhost:9092"]
+  request_topic: "repository-request"
+  response_topic: "repository-response"
+  group_id: "processor-group"
