@@ -31,7 +31,7 @@ services:
         - postgres_processor_data:/var/lib/postgresql/data
       network_mode: host
       healthcheck:
-        test: ["CMD-SHELL", "pg_isready -U ${DB_USER_PROC:-user} -d ${DB_NAME_PROC:-processor_db} -p ${DP_PORT_PROC:-5433}"]
+        test: ["CMD-SHELL", "pg_isready -U ${DB_USER_PROC:-user} -d ${DB_NAME_PROC:-processor_db} -p ${DB_PORT_PROC:-5433}"]
         interval: 5s
         timeout: 5s
         retries: 5
@@ -59,6 +59,16 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    network_mode: host
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local-cluster
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=localhost:9092
+      - DYNAMIC_CONFIG_ENABLED=true
+      - SERVER_PORT=8090
 
   collector:
     build:
