@@ -79,6 +79,8 @@ services:
       - "8081:8081"
     volumes:
       - ./repo-stat/collector/config/config.yaml:/config/config.yaml
+    environment:
+      - GH_TOKEN=${GH_TOKEN}
     depends_on:
       kafka:
         condition: service_healthy
@@ -122,6 +124,8 @@ services:
     volumes:
       - ./repo-stat/subscriber/config/config.yaml:/config/config.yaml
       - ./repo-stat/subscriber/migrations:/root/migrations
+    environment:
+      - GH_TOKEN=${GH_TOKEN}
     network_mode: host
     depends_on:
       postgres_subscriber:

@@ -96,7 +96,7 @@ func (a *App) MustRun(ctx context.Context) {
 }
 
 func (a *App) Run(ctx context.Context) error {
-	go a.resultConsumer.Start(ctx)
+	go a.resultConsumer.Run(ctx)
 
 	lis, err := net.Listen("tcp", a.port)
 	if err != nil {
