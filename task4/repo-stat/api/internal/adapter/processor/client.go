@@ -19,13 +19,12 @@ type Client struct {
 }
 
 func NewClient(address string, log *slog.Logger) (*Client, error) {
-	log.Info("Creating collector gRPC client", slog.String("address", address))
+	log.Info("Creating processor gRPC client", slog.String("address", address))
 
 	conn, err := grpc.NewClient(
 		address,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to collector: %w", err)
 	}
@@ -47,7 +46,8 @@ func (c *Client) GetRepository(ctx context.Context, owner, repo string) (*domain
 
 	resp, err := c.client.GetRepository(ctx, req)
 	if err != nil {
-		c.log.Error("processor grpc call failed",
+		c.log.Error(
+			"processor grpc call failed",
 			slog.String("op", operation),
 			slog.Any("error", err),
 		)
@@ -83,6 +83,7 @@ func (c *Client) GetSubscriptionsInfo(ctx context.Context) ([]domain.Repository,
 	}
 	return results, nil
 }
+
 func (c *Client) Ping(ctx context.Context) domain.PingStatus {
 	_, err := c.client.Ping(ctx, &processorpb.PingRequest{})
 	if err != nil {

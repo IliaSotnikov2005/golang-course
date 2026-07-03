@@ -40,18 +40,47 @@ func NewClient(address string, log *slog.Logger) (*Client, error) {
 }
 
 func (c *Client) Subscribe(ctx context.Context, owner, repo string) error {
+	const operation = "adapter.subscriber.Subscribe"
+
 	_, err := c.client.Subscribe(ctx, &subscirberpb.SubscribeRequest{Owner: owner, Repo: repo})
-	return utils.MapGRPCErrorToDomain(err)
+	if err != nil {
+		c.log.Error(
+			"subscriber grpc call failed",
+			slog.String("op", operation),
+			slog.Any("error", err),
+		)
+		return utils.MapGRPCErrorToDomain(err)
+	}
+
+	return nil
 }
 
 func (c *Client) Unsubscribe(ctx context.Context, owner, repo string) error {
+	const operation = "adapter.subscriber.Unsubscribe"
+
 	_, err := c.client.Unsubscribe(ctx, &subscirberpb.UnsubscribeRequest{Owner: owner, Repo: repo})
-	return utils.MapGRPCErrorToDomain(err)
+	if err != nil {
+		c.log.Error(
+			"subscriber grpc call failed",
+			slog.String("op", operation),
+			slog.Any("error", err),
+		)
+		return utils.MapGRPCErrorToDomain(err)
+	}
+
+	return nil
 }
 
 func (c *Client) List(ctx context.Context) ([]domain.Subscription, error) {
+	const operation = "adapter.subscriber.List"
+
 	resp, err := c.client.List(ctx, &subscirberpb.ListRequest{})
 	if err != nil {
+		c.log.Error(
+			"subscriber grpc call failed",
+			slog.String("op", operation),
+			slog.Any("error", err),
+		)
 		return nil, utils.MapGRPCErrorToDomain(err)
 	}
 

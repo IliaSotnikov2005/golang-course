@@ -34,6 +34,7 @@ func (ca *collectorAdapter) GetRepository(ctx context.Context, owner, repo strin
 		Stargazers:  int(response.Info.Stargazers),
 		Forks:       int(response.Info.Forks),
 		CreatedAt:   response.Info.CreatedAt.AsTime(),
+		HTMLURL:     response.Info.HtmlUrl,
 	}, nil
 }
 

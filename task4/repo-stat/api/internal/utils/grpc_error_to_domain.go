@@ -37,15 +37,15 @@ func MapGRPCErrorToDomain(err error) error {
 		return fmt.Errorf("%w: %s", domain.ErrInvalidInput, st.Message())
 
 	case codes.DeadlineExceeded:
-		return fmt.Errorf("%w: request to collector service timed out", domain.ErrTimeout)
+		return fmt.Errorf("%w: request to service timed out", domain.ErrTimeout)
 
 	case codes.Unavailable:
-		return fmt.Errorf("%w: collector service is unavailable", domain.ErrInternal)
+		return fmt.Errorf("%w: service is unavailable", domain.ErrInternal)
 
 	case codes.Internal:
-		return fmt.Errorf("%w: collector service internal error: %s", domain.ErrInternal, st.Message())
+		return fmt.Errorf("%w: service internal error: %s", domain.ErrInternal, st.Message())
 
 	default:
-		return fmt.Errorf("%w: unexpected error from collector: %s", domain.ErrInternal, st.Message())
+		return fmt.Errorf("%w: unexpected error from service: %s", domain.ErrInternal, st.Message())
 	}
 }
