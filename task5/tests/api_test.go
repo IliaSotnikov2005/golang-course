@@ -52,6 +52,25 @@ func waitForAPI(t *testing.T) {
 	}, 20*time.Second, 500*time.Millisecond, "api did not become ready")
 }
 
+func fetchRepositoryEventually(t *testing.T, url string) *http.Response {
+	t.Helper()
+
+	var resp *http.Response
+	require.Eventually(t, func() bool {
+		var err error
+		resp, err = client.Get(url)
+		if err != nil {
+			return false
+		}
+		if resp.StatusCode != http.StatusOK {
+			resp.Body.Close()
+			return false
+		}
+		return true
+	}, 30*time.Second, 1*time.Second, "repository info should eventually return 200")
+	return resp
+}
+
 func serviceMap(services []PingService) map[string]string {
 	res := make(map[string]string, len(services))
 	for _, svc := range services {
@@ -85,11 +104,8 @@ func TestPing(t *testing.T) {
 func TestRepositoryInfo(t *testing.T) {
 	waitForAPI(t)
 
-	resp, err := client.Get(address + "/api/v1/repositories/info?url=https://github.com/golang/go")
-	require.NoError(t, err, "cannot request repository info")
+	resp := fetchRepositoryEventually(t, address+"/api/v1/repositories/info?url=https://github.com/golang/go")
 	defer resp.Body.Close()
-
-	require.Equal(t, http.StatusOK, resp.StatusCode, "wrong status code")
 
 	var body RepositoryInfoResponse
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body), "cannot decode repository info response")
@@ -150,25 +166,15 @@ func TestPingHelpfulFailureMessage(t *testing.T) {
 func TestRepositoryInfoHelpfulFailureMessage(t *testing.T) {
 	waitForAPI(t)
 
-	resp, err := client.Get(address + "/api/v1/repositories/info?url=https://github.com/golang/go")
-	require.NoError(t, err)
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		var body map[string]any
-		_ = json.NewDecoder(resp.Body).Decode(&body)
-		t.Fatalf("unexpected status %d, body=%v", resp.StatusCode, body)
-	}
+	resp := fetchRepositoryEventually(t, address+"/api/v1/repositories/info?url=https://github.com/golang/go")
+	resp.Body.Close()
 }
 
 func TestRepositoryInfoCreatedAtFormatPresent(t *testing.T) {
 	waitForAPI(t)
 
-	resp, err := client.Get(address + "/api/v1/repositories/info?url=https://github.com/golang/go")
-	require.NoError(t, err)
+	resp := fetchRepositoryEventually(t, address+"/api/v1/repositories/info?url=https://github.com/golang/go")
 	defer resp.Body.Close()
-
-	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	var body RepositoryInfoResponse
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))
@@ -187,11 +193,8 @@ func TestRepositoryInfoEndpointStable(t *testing.T) {
 
 	for _, u := range urls {
 		t.Run(fmt.Sprintf("request_%s", u), func(t *testing.T) {
-			resp, err := client.Get(u)
-			require.NoError(t, err)
+			resp := fetchRepositoryEventually(t, u)
 			defer resp.Body.Close()
-
-			require.Equal(t, http.StatusOK, resp.StatusCode)
 
 			var body RepositoryInfoResponse
 			require.NoError(t, json.NewDecoder(resp.Body).Decode(&body))

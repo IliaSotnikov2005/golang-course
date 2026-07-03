@@ -16,14 +16,16 @@ type Client struct {
 	httpClient *http.Client
 	baseURL    string
 	userAgent  string
+	token      string
 	log        *slog.Logger
 }
 
-func NewClient(httpClient *http.Client, baseURL string, userAgent string, log *slog.Logger) *Client {
+func NewClient(httpClient *http.Client, baseURL string, userAgent string, token string, log *slog.Logger) *Client {
 	return &Client{
 		httpClient: httpClient,
 		baseURL:    baseURL,
 		userAgent:  userAgent,
+		token:      token,
 		log:        log,
 	}
 }
@@ -42,6 +44,9 @@ func (c *Client) GetRepository(ctx context.Context, owner, repo string) (*domain
 
 	request.Header.Set("Accept", "application/vnd.github.v3+json")
 	request.Header.Set("User-Agent", c.userAgent)
+	if c.token != "" {
+		request.Header.Set("Authorization", "Bearer "+c.token)
+	}
 
 	response, err := c.httpClient.Do(request)
 	if err != nil {

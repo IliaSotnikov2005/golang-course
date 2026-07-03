@@ -33,11 +33,11 @@ func New(
 	cfgSubscriber config.SubscriberConfig,
 	cfgKafka config.KafkaConfig,
 ) *App {
-
 	githubClient := github.NewClient(
 		&http.Client{Timeout: cfgGithub.Timeout},
 		cfgGithub.BaseURL,
 		cfgGithub.UserAgent,
+		cfgGithub.Token,
 		log.With(slog.String("component", "github-client")),
 	)
 
@@ -58,7 +58,7 @@ func New(
 		panic(fmt.Errorf("failed to create kafka client: %w", err))
 	}
 
-	resultProducer := kafka.NewAdapter(kafkaClient, cfgKafka.ResponseTopic)
+	resultProducer := kafka.NewAdapter(kafkaClient, cfgKafka.ResponseTopic, log)
 	taskDispatcher := kafka.NewDispatcher(kafkaClient, cfgKafka.RequestTopic)
 
 	getRepoUC := usecase.NewGetRepositoryUseCase(githubClient)
@@ -73,14 +73,6 @@ func New(
 		subscriberAdapter: subscriberAdapter,
 		subscriberConn:    conn,
 	}
-}
-
-func (a *App) MustRun(ctx context.Context) {
-	go func() {
-		if err := a.Run(ctx); err != nil {
-			panic(err)
-		}
-	}()
 }
 
 func (a *App) Run(ctx context.Context) error {

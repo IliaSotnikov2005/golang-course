@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"log/slog"
 	"time"
 )
 
@@ -21,8 +22,11 @@ func (a *App) runBackgroundUpdater(ctx context.Context) {
 			}
 
 			for _, s := range subs {
-				_ = a.taskDispatcher.Dispatch(ctx, s.Owner, s.Repo)
+				if err := a.taskDispatcher.Dispatch(ctx, s.Owner, s.Repo); err != nil {
+					a.log.Error("failed to dispatch task", slog.String("err", err.Error()))
+				}
 			}
+
 			a.log.Info("background tasks sent", "count", len(subs))
 
 		case <-ctx.Done():

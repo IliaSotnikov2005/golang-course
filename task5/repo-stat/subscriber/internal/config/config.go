@@ -37,6 +37,7 @@ type GithubConfig struct {
 	TimeoutSeconds int    `yaml:"timeout_seconds"`
 	Timeout        time.Duration
 	UserAgent      string `yaml:"user_agent" env-default:"Collector-Service/1.0"`
+	Token          string `yaml:"token" env:"GH_TOKEN"`
 }
 
 type KafkaConfig struct {

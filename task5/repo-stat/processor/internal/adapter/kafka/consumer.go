@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"log/slog"
+	"time"
 
 	dtokafka "github.com/IliaSotnikov2005/golang-course/task5/repo-stat/platform/kafka"
 	"github.com/IliaSotnikov2005/golang-course/task5/repo-stat/processor/internal/domain"
@@ -25,37 +26,66 @@ func NewResultConsumer(client *kgo.Client, storage usecase.DataStorage, log *slo
 	}
 }
 
-func (c *ResultConsumer) Start(ctx context.Context) {
+func (c *ResultConsumer) Run(ctx context.Context) {
+	log := c.log.With(slog.String("component", "kafka-result-consumer"))
+	log.Info("starting Kafka consumer")
+
 	for {
-		fetches := c.client.PollFetches(ctx)
+		select {
+		case <-ctx.Done():
+			log.Info("context cancelled, stopping consumer")
+			return
+		default:
+		}
+
+		ctxWithTimeout, cancel := context.WithTimeout(ctx, 10*time.Second)
+		fetches := c.client.PollFetches(ctxWithTimeout)
+		cancel()
+
 		if errs := fetches.Errors(); len(errs) > 0 {
 			c.log.Error("kafka poll errors", slog.Any("errors", errs))
 		}
 
-		fetches.EachRecord(func(record *kgo.Record) {
-			var resp dtokafka.RepoResponse
-			if err := json.Unmarshal(record.Value, &resp); err != nil {
-				c.log.Error("failed to unmarshal kafka record", slog.Any("error", err))
-				return
-			}
-
-			if resp.Error != "" {
-				c.log.Warn("received error response from collector", slog.String("error", resp.Error))
-				return
-			}
-
-			repo := &domain.Repository{
-				FullName:    resp.FullName,
-				Description: resp.Description,
-				Stargazers:  resp.Stargazers,
-				Forks:       resp.Forks,
-				CreatedAt:   resp.CreatedAt,
-				HTMLURL:     resp.HTMLURL,
-			}
-
-			if err := c.storage.Upsert(ctx, repo); err != nil {
-				c.log.Error("failed to upsert repo from kafka", slog.String("repo", repo.FullName), slog.Any("error", err))
-			}
-		})
+		iter := fetches.RecordIter()
+		for !iter.Done() {
+			record := iter.Next()
+			c.processRecord(ctx, record)
+		}
 	}
+}
+
+func (c *ResultConsumer) processRecord(ctx context.Context, record *kgo.Record) {
+	log := c.log.With(
+		slog.String("topic", record.Topic),
+		slog.Int64("partition", int64(record.Partition)),
+		slog.Int64("offset", record.Offset),
+	)
+
+	log.Debug("processing message")
+
+	var response dtokafka.RepoResponse
+	if err := json.Unmarshal(record.Value, &response); err != nil {
+		log.Error("failed to unmarshal message", slog.String("error", err.Error()), slog.String("value", string(record.Value)))
+	}
+
+	if response.Error != "" {
+		c.log.Warn("received error response from collector", slog.String("error", response.Error))
+		return
+	}
+
+	repo := &domain.Repository{
+		FullName:    response.FullName,
+		Description: response.Description,
+		Stargazers:  response.Stargazers,
+		Forks:       response.Forks,
+		CreatedAt:   response.CreatedAt,
+		HTMLURL:     response.HTMLURL,
+	}
+
+	if err := c.storage.Upsert(ctx, repo); err != nil {
+		c.log.Error("failed to upsert repo from kafka", slog.String("repo", repo.FullName), slog.String("error", err.Error()))
+		return
+	}
+
+	log.Info("message processed successfully")
 }

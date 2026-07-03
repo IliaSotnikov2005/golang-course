@@ -16,9 +16,9 @@ import (
 type Handler struct {
 	processorpb.UnimplementedProcessorServiceServer
 	log                         *slog.Logger
-	getRepositoryUseCase        usecase.GetRepositoryUseCase
-	getSubscriptionsInfoUseCase usecase.GetSubscriptionsInfoUseCase
-	pingUseCase                 usecase.PingUseCase
+	getRepositoryUseCase        *usecase.GetRepositoryUseCase
+	getSubscriptionsInfoUseCase *usecase.GetSubscriptionsInfoUseCase
+	pingUseCase                 *usecase.PingUseCase
 }
 
 func NewHandler(
@@ -29,9 +29,9 @@ func NewHandler(
 ) *Handler {
 	return &Handler{
 		log:                         log,
-		getRepositoryUseCase:        *getRepositoryUseCase,
-		getSubscriptionsInfoUseCase: *getSubscribtionsInfoUseCase,
-		pingUseCase:                 *pingUseCase,
+		getRepositoryUseCase:        getRepositoryUseCase,
+		getSubscriptionsInfoUseCase: getSubscribtionsInfoUseCase,
+		pingUseCase:                 pingUseCase,
 	}
 }
 
@@ -58,7 +58,8 @@ func (h *Handler) GetRepository(ctx context.Context, req *processorpb.GetReposit
 			Forks:       int32(repo.Forks),
 			CreatedAt:   timestamppb.New(repo.CreatedAt),
 			HtmlUrl:     repo.HTMLURL,
-		}}, nil
+		},
+	}, nil
 }
 
 func (h *Handler) GetSubscriptionsInfo(ctx context.Context, req *processorpb.GetSubscriptionsInfoRequest) (*processorpb.GetSubscriptionsInfoResponse, error) {
@@ -89,6 +90,7 @@ func (h *Handler) GetSubscriptionsInfo(ctx context.Context, req *processorpb.Get
 		Repositories: pbRepos,
 	}, nil
 }
+
 func (h *Handler) Ping(ctx context.Context, req *processorpb.PingRequest) (*processorpb.PingResponse, error) {
 	const operation = "grpccontroller.Handler.Ping"
 	log := h.log.With(slog.String("operation", operation))

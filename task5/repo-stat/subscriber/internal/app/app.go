@@ -59,7 +59,7 @@ func New(
 	repo := db.NewPostgresRepository(pool)
 
 	httpClient := &http.Client{Timeout: cfg.Github.Timeout}
-	ghClient := github.NewClient(httpClient, cfg.Github.BaseURL, cfg.Github.UserAgent, log)
+	ghClient := github.NewClient(httpClient, cfg.Github.BaseURL, cfg.Github.UserAgent, cfg.Github.Token, log)
 
 	kafkaClient, err := kgo.NewClient(
 		kgo.SeedBrokers(cfg.Kafka.Brokers...),
