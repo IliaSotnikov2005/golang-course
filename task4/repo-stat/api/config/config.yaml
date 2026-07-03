@@ -1,0 +1,10 @@
+log_level: "DEBUG"
+
+http:
+  port: ":8080"
+  timeout_seconds: 5
+  idle_timeout_seconds: 30
+
+services:
+  processor: "localhost:8082"
+  subscriber: "localhost:8083"

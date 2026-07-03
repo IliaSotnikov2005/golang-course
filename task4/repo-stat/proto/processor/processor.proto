@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package processor;
+
+import "google/protobuf/timestamp.proto";
+
+// protolint:disable MAX_LINE_LENGTH
+option go_package = "github.com/IliaSotnikov2005/golang-course/task4/repo-stat/proto/processor";
+// protolint:enable MAX_LINE_LENGTH
+
+// ProcessorService aggregates data and provides communication
+// between API Gateway and Collector service.
+service ProcessorService {
+  // GetRepository fetches information about a repository by owner and name.
+  //
+  // Potential Errors:
+  // - NOT_FOUND: Repository does not exist.
+  // - INVALID_ARGUMENT: Owner or Repo name is missing.
+  // - PERMISSION_DENIED: Access is restricted.
+  // - UNAUTHENTICATED: API authentication failed.
+  // - RESOURCE_EXHAUSTED: Rate limit exceeded.
+  // - DEADLINE_EXCEEDED: Request timeout.
+  // - INTERNAL: Unexpected server error.
+  rpc GetRepository(GetRepositoryRequest) returns (GetRepositoryResponse);
+
+  // Get SubscriptionsInfo retrieves information about all subscribed repositories.
+  rpc GetSubscriptionsInfo(GetSubscriptionsInfoRequest) returns (GetSubscriptionsInfoResponse);
+  
+  // Ping checks whether the service is available.
+  rpc Ping(PingRequest) returns (PingResponse);
+}
+
+// RepositoryInfo represents information about a GitHub repository.
+message RepositoryInfo {
+  string full_name = 1;
+  string description = 2;
+  int32 stargazers = 3;
+  int32 forks = 4;
+  google.protobuf.Timestamp created_at = 5;
+  string html_url = 6;
+}
+
+// GetRepositoryRequest contains parameters for requesting repo information.
+message GetRepositoryRequest {
+  string owner = 1;
+  string repo = 2;
+}
+
+// GetRepositoryResponse represents GitHub repository information.
+message GetRepositoryResponse {
+  RepositoryInfo info = 1;
+}
+
+// GetSubscriptionsInfoRequest represents a request to retrieve information about all subscribed repositories.
+message GetSubscriptionsInfoRequest {
+}
+
+// GetSubscriptionsInfoResponse contains a list of RepositoryInfo for all subscribed repositories.
+message GetSubscriptionsInfoResponse {
+  repeated RepositoryInfo repositories = 1;
+}
+
+// PingRequest represents ping request.
+message PingRequest {
+
+}
+
+// PingResponse represents ping reply.
+message PingResponse {
+  string reply = 1;
+}
