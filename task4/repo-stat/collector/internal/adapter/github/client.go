@@ -3,7 +3,9 @@ package github
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -29,13 +31,12 @@ func NewClient(httpClient *http.Client, baseURL string, userAgent string, log *s
 }
 
 func (c *Client) GetRepository(ctx context.Context, owner, repo string) (*domain.Repository, error) {
-
 	url, err := url.JoinPath(c.baseURL, owner, repo)
 	if err != nil {
 		return nil, err
 	}
 
-	request, err := http.NewRequest(http.MethodGet, url, nil)
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("request creation error: %w", err)
 	}
@@ -45,12 +46,22 @@ func (c *Client) GetRepository(ctx context.Context, owner, repo string) (*domain
 
 	response, err := c.httpClient.Do(request)
 	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			return nil, fmt.Errorf("%w: %v", domain.ErrTimeout, err)
+		}
+		if errors.Is(err, context.Canceled) {
+			return nil, fmt.Errorf("%w: request canceled", err)
+		}
+
 		return nil, fmt.Errorf("request execution error: %w", err)
 	}
 
 	defer func() {
+		if _, err := io.Copy(io.Discard, response.Body); err != nil {
+			c.log.Warn("failed to drain response body", "error", err)
+		}
 		if err := response.Body.Close(); err != nil {
-			c.log.Warn("failed to close response body: %v\n", slog.String("error", err.Error()))
+			c.log.Warn("failed to close response body", slog.String("error", err.Error()))
 		}
 	}()
 

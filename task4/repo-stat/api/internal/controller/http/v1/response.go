@@ -21,7 +21,7 @@ func (h *Handler) handleError(w http.ResponseWriter, err error) {
 		errorMessage = http.StatusText(http.StatusMovedPermanently)
 	case errors.Is(err, domain.ErrInvalidInput):
 		statusCode = http.StatusBadRequest
-		errorMessage = err.Error()
+		errorMessage = http.StatusText(http.StatusBadRequest)
 	case errors.Is(err, domain.ErrForbidden):
 		statusCode = http.StatusForbidden
 		errorMessage = http.StatusText(http.StatusForbidden)
