@@ -31,7 +31,6 @@ func New(
 	cfgGithub config.GithubConfig,
 	cfgSubscriber config.SubscriberConfig,
 ) *App {
-
 	httpClient := http.Client{
 		Timeout: cfgGithub.Timeout,
 	}
@@ -55,13 +54,14 @@ func New(
 
 	subscriberAdapter := subscriber.NewClient(subscriberRawClient)
 
-	getSubscriptionsInfoUseCase := usecase.NewGetSubscriptionsInfoUseCase(subscriberAdapter, githubClient)
+	getSubscriptionsInfoUseCase := usecase.NewGetSubscriptionsInfoUseCase(log, subscriberAdapter, githubClient)
 
 	grpcHandler := grpccontroller.NewHandler(log, getRepoUseCase, getSubscriptionsInfoUseCase, pingUseCase)
 
 	gRPCServer := grpc.NewServer(
 		grpc.ConnectionTimeout(cfgGRPC.Timeout),
-		grpc.ChainUnaryInterceptor(interceptors.LoggingInterceptor(log)))
+		grpc.ChainUnaryInterceptor(interceptors.LoggingInterceptor(log)),
+	)
 	collector.RegisterCollectorServiceServer(gRPCServer, grpcHandler)
 
 	return &App{
