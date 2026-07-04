@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package subscriber.v1;
+
+// protolint:disable MAX_LINE_LENGTH
+option go_package = "github.com/IliaSotnikov2005/golang-course/task6/repo-stat/subscriber;subscriberv1";
+// protolint:enable MAX_LINE_LENGTH
+
+// Subscriber service provides methods to manage GitHub repository subscriptions.
+service Subscriber {
+  // Ping checks whether the service is available.
+  rpc Ping(PingRequest) returns (PingResponse);
+
+  // Subscribe adds a new subscription for a GitHub repository.
+  rpc Subscribe(SubscribeRequest) returns (SubscribeResponse);
+
+  // Unsubscribe removes an existing subscription for a GitHub repository.
+  rpc Unsubscribe(UnsubscribeRequest) returns (UnsubscribeResponse);
+
+  // List retrieves all current subscriptions.
+  rpc List(ListRequest) returns (ListResponse);
+}
+
+// PingRequest is an empty message used to check service availability.
+message PingRequest {
+}
+
+// PingResponse contains a simple reply message confirming service availability.
+message PingResponse {
+  string reply = 1;
+}
+
+// SubscribeRequest contains parameters for subscribing to a GitHub repository.
+message SubscribeRequest {
+  string owner = 1;
+  string repo = 2;
+}
+
+// SubscribeResponse confirms a successful subscription and provides subscription details.
+message SubscribeResponse {
+  int64 id = 1;
+  string owner = 2;
+  string repo = 3;
+}
+
+// UnsubscribeRequest contains parameters for unsubscribing from a GitHub repository.
+message UnsubscribeRequest {
+  string owner = 1;
+  string repo = 2;
+}
+
+// UnsubscribeResponse confirms a successful unsubscription.
+message UnsubscribeResponse {
+  bool success = 1;
+}
+
+// ListRequest is an empty message used to request a list of all current subscriptions.
+message ListRequest {}
+
+// ListResponse contains a list of current subscriptions, each with the repository owner and name.
+message ListResponse {
+  message Subscription {
+    string owner = 1;
+    string repo = 2;
+  }
+
+  repeated Subscription subscriptions = 1;
+}
