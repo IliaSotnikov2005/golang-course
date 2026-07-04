@@ -25,11 +25,11 @@ func (rl *RedisLimiter) Allow(ctx context.Context, ip string, rps float64, burst
 	result, err := limitScript.Run(ctx, rl.client, []string{"ratelimit:" + ip},
 		rps,
 		burst,
-		time.Now().UnixNano(),
+		time.Now().Unix(),
 	).Int()
 
 	if err != nil {
-		return true, err
+		return false, err
 	}
 
 	return result == 1, nil

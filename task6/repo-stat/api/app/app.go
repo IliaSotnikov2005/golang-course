@@ -8,31 +8,43 @@ import (
 	"time"
 
 	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/internal/adapter/processor"
-	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/internal/adapter/redis"
+	redisadapt "github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/internal/adapter/redis"
 	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/internal/adapter/subscriber"
+	"github.com/redis/go-redis/v9"
 	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/internal/config"
 	v1 "github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/internal/controller/http/v1"
 	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/internal/usecase"
 )
 
 type App struct {
-	log        *slog.Logger
-	httpServer *http.Server
-	port       string
+	log         *slog.Logger
+	httpServer  *http.Server
+	port        string
+	redisClient *redis.Client
 }
 
 func New(
 	log *slog.Logger,
 	cfg *config.Config,
 ) (*App, error) {
+	redisClient, err := redisadapt.NewClient(cfg.Redis.Host, cfg.Redis.Port)
+	if err != nil {
+		log.Error("failed to connect to redis", slog.String("error", err.Error()))
+		return nil, fmt.Errorf("failed to connect to redis: %w", err)
+	}
 
-	redisClient, _ := redis.NewClient(cfg.Redis.Host, cfg.Redis.Port)
-
-	redisCache := redis.NewCache(redisClient)
+	redisCache := redisadapt.NewCache(redisClient)
 
 	processorBaseClient, err := processor.NewClient(cfg.Services.Processor, log)
 	if err != nil {
+		redisClient.Close()
 		return nil, fmt.Errorf("failed to init processor client: %w", err)
+	}
+
+	subscriberClient, err := subscriber.NewClient(cfg.Services.Subscriber, log)
+	if err != nil {
+		redisClient.Close()
+		return nil, fmt.Errorf("failed to init subscriber client: %w", err)
 	}
 
 	processorWithCache := processor.NewCachingDecorator(
@@ -41,11 +53,6 @@ func New(
 		log,
 		cfg.Cache.TTL,
 	)
-
-	subscriberClient, err := subscriber.NewClient(cfg.Services.Subscriber, log)
-	if err != nil {
-		return nil, fmt.Errorf("failed to init subscriber client: %w", err)
-	}
 
 	getRepoUC := usecase.NewGetRepositoryUseCase(processorWithCache)
 	subscribeUC := usecase.NewSubscribeUseCase(subscriberClient)
@@ -61,8 +68,9 @@ func New(
 		unsubscribeUC,
 		listUC,
 		subscriptionsInfoUC,
-		pingUC)
-	limiter := redis.NewRedisLimiter(redisClient)
+		pingUC,
+	)
+	limiter := redisadapt.NewRedisLimiter(redisClient)
 	router := handler.Router(limiter, cfg.RateLimit.RequestsPerSecond, cfg.RateLimit.Burst)
 
 	srv := &http.Server{
@@ -74,9 +82,10 @@ func New(
 	}
 
 	return &App{
-		log:        log,
-		httpServer: srv,
-		port:       cfg.HTTP.Port,
+		log:         log,
+		httpServer:  srv,
+		port:        cfg.HTTP.Port,
+		redisClient: redisClient,
 	}, nil
 }
 
@@ -107,5 +116,9 @@ func (a *App) Stop() {
 
 	if err := a.httpServer.Shutdown(ctx); err != nil {
 		a.log.Error("failed to shutdown HTTP server", slog.String("error", err.Error()))
+	}
+
+	if err := a.redisClient.Close(); err != nil {
+		a.log.Error("failed to close redis client", slog.String("error", err.Error()))
 	}
 }

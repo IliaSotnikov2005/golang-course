@@ -42,14 +42,26 @@ func (cd *CachingDecorator) GetRepository(ctx context.Context, owner, repo strin
 		}
 	}
 
+	cd.log.Debug("cache miss", slog.String("key", cacheKey))
+
 	repoData, err := cd.base.GetRepository(ctx, owner, repo)
 	if err != nil {
 		return nil, err
 	}
 
 	go func() {
-		bytes, _ := json.Marshal(repoData)
-		_ = cd.cache.Set(context.Background(), cacheKey, bytes, cd.ttl)
+		bytes, err := json.Marshal(repoData)
+		if err != nil {
+			cd.log.Error("failed to marshal repo data for cache", slog.Any("error", err))
+			return
+		}
+
+		writeCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 2*time.Second)
+		defer cancel()
+
+		if err := cd.cache.Set(writeCtx, cacheKey, bytes, cd.ttl); err != nil {
+			cd.log.Error("failed to save repo to cache", slog.Any("error", err))
+		}
 	}()
 
 	return repoData, nil
@@ -66,6 +78,8 @@ func (cd *CachingDecorator) GetSubscriptionsInfo(ctx context.Context) ([]domain.
 		}
 	}
 
+	cd.log.Debug("cache miss for subscriptions info", slog.String("key", cacheKey))
+
 	repos, err := cd.base.GetSubscriptionsInfo(ctx)
 	if err != nil {
 		return nil, err
@@ -78,8 +92,10 @@ func (cd *CachingDecorator) GetSubscriptionsInfo(ctx context.Context) ([]domain.
 			return
 		}
 
-		err = cd.cache.Set(context.Background(), cacheKey, bytes, cd.ttl)
-		if err != nil {
+		writeCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 2*time.Second)
+		defer cancel()
+
+		if err := cd.cache.Set(writeCtx, cacheKey, bytes, cd.ttl); err != nil {
 			cd.log.Error("failed to save subs info to cache", slog.Any("error", err))
 		}
 	}()

@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/IliaSotnikov2005/golang-course/task6/repo-stat/api/internal/domain"
@@ -21,32 +22,42 @@ func NewGetRepositoryUseCase(processor RepositoryProvider) *GetRepositoryUseCase
 func (uc *GetRepositoryUseCase) Execute(ctx context.Context, url string) (*domain.Repository, error) {
 	owner, repo, err := parseURL(url)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", domain.ErrInvalidInput, err.Error())
+		return nil, fmt.Errorf("parse url: %w", err)
 	}
 
 	return uc.processor.GetRepository(ctx, owner, repo)
 }
 
-func parseURL(rawURL string) (string, string, error) {
+func parseURL(rawURL string) (owner, repo string, err error) {
 	input := strings.TrimSpace(strings.TrimRight(rawURL, "/"))
 
-	if strings.Contains(input, "://") {
-		parts := strings.SplitN(input, "://", 2)
-		input = parts[1]
+	if input == "" {
+		return "", "", fmt.Errorf("url is empty: %w", domain.ErrInvalidInput)
 	}
 
-	input = strings.TrimPrefix(input, "github.com")
-	input = strings.TrimPrefix(input, "www.github.com")
-	input = strings.Trim(input, "/")
+	if !strings.Contains(input, "://") {
+		input = "https://" + input
+	}
 
-	parts := strings.Split(input, "/")
+	u, err := url.Parse(input)
+	if err != nil {
+		return "", "", fmt.Errorf("invalid URL format: %w", domain.ErrInvalidInput)
+	}
+
+	path := u.Path
+	if u.Host != "" && !strings.Contains(u.Host, "github.com") {
+		return "", "", fmt.Errorf("only GitHub repositories are supported: %w", domain.ErrInvalidInput)
+	}
+
+	path = strings.TrimPrefix(path, "/")
+	parts := strings.Split(path, "/")
 
 	if len(parts) < 2 {
-		return "", "", fmt.Errorf("expected format: repository URL or owner/repo, got: %s", rawURL)
+		return "", "", fmt.Errorf("expected format: owner/repo: %w", domain.ErrInvalidInput)
 	}
 
 	if len(parts) > 2 {
-		return "", "", fmt.Errorf("invalid URL: too many path segments, expected owner/repo")
+		return "", "", fmt.Errorf("invalid URL: too many path segments: %w", domain.ErrInvalidInput)
 	}
 
 	return parts[0], parts[1], nil

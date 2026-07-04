@@ -64,7 +64,7 @@ func Load() (*Config, error) {
 	}
 
 	var rawCfg struct {
-		LogLevel  string    `yaml:"log_level" env-default:"INFO"`
+		LogLevel  string    `yaml:"log_level"`
 		Services  Services  `yaml:"services"`
 		HTTP      httpRaw   `yaml:"http"`
 		Redis     Redis     `yaml:"redis"`
